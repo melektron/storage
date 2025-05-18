@@ -1,0 +1,20 @@
+{
+	"folders": [
+        {
+            "path": "."
+        },
+        {
+            "name": "espidf_c_experiments",
+            "path": "espidf_c_experiments"
+        },
+        {
+            "name": "arduino_c_experiments",
+            "path": "arduino_c_experiments"
+        },
+        {
+            "name": "espidf_arduino_test",
+            "path": "espidf_arduino_test"
+        }
+    ],
+    "settings": {}
+}

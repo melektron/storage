@@ -1,0 +1,4 @@
+dependencies:
+  espressif/arduino-esp32: "^3.2.0"
+  #lvgl/lvgl: "~8.4.0"
+  #espressif/esp_lcd_touch_cst816s: "^1.0.3"
