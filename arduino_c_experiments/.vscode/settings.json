@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "lv_os_private.h": "c",
+        "lv_tick_private.h": "c"
+    }
+}

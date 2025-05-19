@@ -18,66 +18,35 @@ static const char *TAG = "bsp_lv_port";
 
 static SemaphoreHandle_t lvgl_api_mux = NULL;
 static SemaphoreHandle_t flush_wait_sem = nullptr;
-static SemaphoreHandle_t flush_wait_sem2 = nullptr;
 
 lv_display_t *display1;
 esp_lcd_panel_handle_t panel_handle;
 
-/* More data bus class: https://github.com/moononournation/Arduino_GFX/wiki/Data-Bus-Class */
-//Arduino_DataBus *bus = new Arduino_ESP32SPI(
-//  EXAMPLE_PIN_NUM_LCD_DC /* DC */, EXAMPLE_PIN_NUM_LCD_CS /* CS */,
-//  EXAMPLE_PIN_NUM_LCD_SCLK /* SCK */, EXAMPLE_PIN_NUM_LCD_MOSI /* MOSI */, EXAMPLE_PIN_NUM_LCD_MISO /* MISO */, FSPI /* spi_num */, true);
-//
-///* More display class: https://github.com/moononournation/Arduino_GFX/wiki/Display-Class */
-//Arduino_GFX *gfx = new Arduino_ST7789(
-//  bus, EXAMPLE_PIN_NUM_LCD_RST /* RST */, EXAMPLE_LCD_ROTATION /* rotation */, true /* IPS */,
-//  EXAMPLE_LCD_H_RES /* width */, EXAMPLE_LCD_V_RES /* height */);
-
-
-bool lvgl_lock(int timeout_ms)
-{
-// Convert timeout in milliseconds to FreeRTOS ticks
-// If `timeout_ms` is set to -1, the program will block until the condition is met
-    const TickType_t timeout_ticks = (timeout_ms == -1) ? portMAX_DELAY : pdMS_TO_TICKS(timeout_ms);
-    return xSemaphoreTakeRecursive(lvgl_api_mux, timeout_ticks) == pdTRUE;
-}
-
-void lvgl_unlock(void)
-{
-    xSemaphoreGiveRecursive(lvgl_api_mux);
-}
-
-uint32_t tstart = 0;
 
 static bool example_notify_lvgl_flush_ready(esp_lcd_panel_io_handle_t panel_io, esp_lcd_panel_io_event_data_t *edata, void *user_ctx)
 {
     BaseType_t hptw;
-    //lv_disp_flush_ready(display1);    // we are instead using the flush_wait API
     xSemaphoreGiveFromISR(flush_wait_sem, &hptw);
-    xSemaphoreGiveFromISR(flush_wait_sem2, &hptw);
     return false;
 }
 
-
 static void example_lvgl_flush_cb(lv_display_t *display, const lv_area_t *area, uint8_t *pixel_map)
 {
-    tstart = millis();
-    printf("\r\nflush\r\n");
+    //printf("flush\r\n");
     int offsetx1 = area->x1;
     int offsetx2 = area->x2;
     int offsety1 = area->y1;
     int offsety2 = area->y2;
-    // copy a buffer's content to a specific area of the display
 
+    // copy a buffer's content to a specific area of the display
     esp_lcd_panel_draw_bitmap(panel_handle, offsetx1, offsety1, offsetx2 + 1, offsety2 + 1, pixel_map);
 }
 
 static void example_flush_wait_cb(lv_display_t *display)
 {
-    printf("wait\r\n");
+    // wait until dma copy is done
     xSemaphoreTake(flush_wait_sem, portMAX_DELAY);
 }
-
 
 static void example_lvgl_touch_cb(lv_indev_t *drv, lv_indev_data_t *data)
 {
@@ -121,7 +90,7 @@ void local_display_init(void)
     io_config.lcd_param_bits = EXAMPLE_LCD_PARAM_BITS;
     io_config.spi_mode = 0;
     io_config.trans_queue_depth = 10;
-    io_config.on_color_trans_done = example_notify_lvgl_flush_ready;
+    io_config.on_color_trans_done = example_notify_lvgl_flush_ready;    // this may be called too often but is not a problem mostly https://github.com/espressif/esp-idf/issues/14860
     // Attach the LCD to the SPI bus
     ESP_ERROR_CHECK(esp_lcd_new_panel_io_spi((esp_lcd_spi_bus_handle_t)EXAMPLE_SPI_HOST, &io_config, &io_handle));
 
@@ -177,36 +146,6 @@ void local_touch_init(void)
     }
 }
 
-
-static void task(void *param)
-{
-
-    while (1)
-    {
-        uint32_t task_delay_ms = EXAMPLE_LVGL_TASK_MAX_DELAY_MS;
-        while (1)
-        {
-            // Lock the mutex due to the LVGL APIs are not thread-safe
-            if (lvgl_lock(-1))
-            {
-                task_delay_ms = lv_timer_handler();
-                // Release the mutex
-                lvgl_unlock();
-            }
-            if (task_delay_ms > EXAMPLE_LVGL_TASK_MAX_DELAY_MS)
-            {
-                task_delay_ms = EXAMPLE_LVGL_TASK_MAX_DELAY_MS; // This will happen when LV_NO_TIMER_READY is returned
-            }
-            else if (task_delay_ms < EXAMPLE_LVGL_TASK_MIN_DELAY_MS)
-            {
-                task_delay_ms = EXAMPLE_LVGL_TASK_MIN_DELAY_MS;
-            }
-            vTaskDelay(pdMS_TO_TICKS(task_delay_ms));
-        }
-    }
-}
-
-
 void bsp_lv_port_init(void)
 {
     local_display_init();
@@ -214,7 +153,6 @@ void bsp_lv_port_init(void)
 
     lvgl_api_mux = xSemaphoreCreateRecursiveMutex();
     flush_wait_sem = xSemaphoreCreateBinary();
-    flush_wait_sem2 = xSemaphoreCreateBinary();
 
     lv_init();
     lv_tick_set_cb(xTaskGetTickCount);
@@ -242,23 +180,25 @@ void bsp_lv_port_init(void)
     printf("past init\r\n");
 }
 
+static void task(void *param)
+{
+    for (;;)
+    {
+        // lock happens internally in lv_timer_handler() (https://docs.lvgl.io/master/details/integration/adding-lvgl-to-your-project/threading.html#method-2-use-a-mutex)
+        uint32_t task_delay_ms = lv_timer_handler();
+        if (task_delay_ms > EXAMPLE_LVGL_TASK_MAX_DELAY_MS) // This will happen when LV_NO_TIMER_READY is returned
+            task_delay_ms = LV_DEF_REFR_PERIOD; 
+        else if (task_delay_ms < 1)
+            continue;
+
+        vTaskDelay(pdMS_TO_TICKS(task_delay_ms));
+    }
+
+    vTaskDelete(NULL);
+}
+
 void bsp_lv_port_run(void)
 {
     xTaskCreatePinnedToCore(task, "bsp_lv_port_task", 1024 * 10, NULL, 5, NULL, 1);
-
-    xTaskCreate(
-        [](void *param) {
-        for (;;)
-        {
-            xSemaphoreTake(flush_wait_sem2, portMAX_DELAY);
-            printf("%d ms\n\r", millis() - tstart);
-        }
-        vTaskDelete(NULL);
-    },
-        "test",
-        1024 * 4,
-        nullptr,
-        5,
-        nullptr
-    );
+    printf("task created\r\n");
 }

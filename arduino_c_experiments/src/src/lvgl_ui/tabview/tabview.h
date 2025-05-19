@@ -36,6 +36,7 @@ extern "C" {
 void system_tab_create(lv_obj_t * tab);
 void camera_tab_create(lv_obj_t * tab);
 void qmi8658_tab_create(lv_obj_t * tab);
+void animtest_tab_create(lv_obj_t *tab);
 
 void wifi_tab_create(lv_obj_t * tab);
 void wifi_set_mode_change_cb(wifi_mode_change_cb cb);

@@ -1,7 +1,6 @@
 #include <Arduino.h>
 
 #include "bsp_i2c.h"
-#include "bsp_spi.h"
 #include "bsp_cst816.h"
 #include "bsp_lv_port.h"
 
@@ -17,30 +16,30 @@
 char sta_ssid[] = "waveshare";
 char sta_pass[] = "12345678";
 
-void setup() {
-  Serial.begin(115200);
-  bsp_i2c_init();
-  bsp_lv_port_init();
-  //bsp_spi_init();
+void setup()
+{
+    Serial.begin(115200);
+    bsp_i2c_init();
+    bsp_lv_port_init();
 
-  bsp_lv_port_run();
+    bsp_lv_port_run();
 
-  if (lvgl_lock(-1)) {
+    lv_lock();
     lvgl_ui_init();
-    lvgl_unlock();
-  }
-  app_qmi8658_init();
-  app_system_init();
-  app_camera_init();
-  app_wifi_init(sta_ssid, sta_pass);
+    lv_unlock();
 
-  app_qmi8658_run();
-  app_system_run();
-  app_camera_run();
-  app_wifi_run();
+    app_qmi8658_init();
+    app_system_init();
+    app_camera_init();
+    app_wifi_init(sta_ssid, sta_pass);
+
+    app_qmi8658_run();
+    app_system_run();
+    app_camera_run();
+    app_wifi_run();
 }
 
 
 
-void loop() {
-}
+void loop()
+{}

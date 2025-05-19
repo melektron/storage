@@ -5,6 +5,7 @@
 #include "lvgl.h"
 #include "../../bsp_lv_port.h"
 
+
 esp_err_t cam_err;
 
 static camera_config_t camera_config = {
@@ -40,32 +41,9 @@ static camera_config_t camera_config = {
     .grab_mode = CAMERA_GRAB_WHEN_EMPTY,
 };
 
-void flip_fb(uint8_t *fb, uint32_t width, uint32_t height)
-{
-    constexpr uint8_t BYTES_PER_PIXEL = 2;
-    uint8_t line_buffer[width * BYTES_PER_PIXEL];
-
-    for (uint32_t line = 0; line < (height >> 1); line++)
-    {
-        uint8_t *line_front = fb + (line * width * BYTES_PER_PIXEL);
-        uint8_t *line_back = fb + ((height - line - 1) * width * BYTES_PER_PIXEL);
-        
-        memcpy(line_buffer, line_front, (width * BYTES_PER_PIXEL));
-        memcpy(line_front, line_back, (width * BYTES_PER_PIXEL));
-        memcpy(line_back, line_buffer, (width * BYTES_PER_PIXEL));
-    }
-    //uint16_t *pixels = (uint16_t *)fb;
-    //for (int i = 0; i < num_pixels / 2; i++)
-    //{
-    //    uint16_t end_px = *(pixels + (num_pixels - i - 1));
-    //    *(pixels + (num_pixels - i - 1)) = *(pixels + i);
-    //    *(pixels + i) = 
-    //}
-}
-
-camera_fb_t *pic = nullptr;
 void app_camera_task(void *arg)
 {
+    static camera_fb_t *pic = nullptr;
     lv_image_dsc_t img_dsc;
     img_dsc.header.magic = LV_IMAGE_HEADER_MAGIC;
     img_dsc.header.cf = LV_COLOR_FORMAT_NATIVE;
@@ -74,11 +52,11 @@ void app_camera_task(void *arg)
     img_dsc.data_size = 240 * 240 * 2;
     img_dsc.data = NULL;
 
-    // lv_img_set_src(img_camera, &pic);
     while (1)
     {
         if (cam_err != ESP_OK)
             break;
+
         if (pic != nullptr)
         {
             // return old framebuffer before acquiring new one
@@ -91,23 +69,6 @@ void app_camera_task(void *arg)
         // update screen with new buffer
         if (NULL != pic)
         {
-            // debug block on screen to check byte order of pixel
-            //for (int i = 0; i < 1000; i++)
-            //{
-            //    pic->buf[i*2] =  0b11100000u;
-            //    pic->buf[i*2+1] = 0b00000111u;
-            //}
-            //for (uint32_t i = 0; i < (240*100); i++)
-            //{
-            //   pic->buf[i*2] =  0b00000111u;
-            //   pic->buf[i*2+1] = 0b11100000u;
-            //}
-            //for (uint32_t i = 240*140; i < (240*239); i++)
-            //{
-            //   pic->buf[i*2] =  0b11111000u;
-            //   pic->buf[i*2+1] = 0b00000000u;
-            //}
-
             /**
              * ATTENTION
              * esp camera returns colors in the following byte order: 0: RRRRRGGG 1: GGGBBBBB
@@ -120,14 +81,12 @@ void app_camera_task(void *arg)
              * as otherwise DMA will overwrite the buffer with the next frame before we have converted it fully.
              * Alternatively we could copy the buffer out of the camera DMA buffer (would probably be better anyway)
              */
-            lv_draw_sw_rgb565_swap(pic->buf, 240*240);
-            //flip_fb(pic->buf, 240, 240);
+            lv_draw_sw_rgb565_swap(pic->buf, 240 * 240);
             img_dsc.data = pic->buf;
-            if (lvgl_lock(-1))
-            {
-                lv_image_set_src(img_camera, &img_dsc);
-                lvgl_unlock();
-            }
+
+            lv_lock();
+            lv_image_set_src(img_camera, &img_dsc);
+            lv_unlock();
         }
         else
         {
@@ -148,7 +107,7 @@ void app_camera_init(void)
     {
         sensor_t *s = esp_camera_sensor_get();
         s->set_vflip(s, 1);
-        //s->set_hmirror(s, 1);
+        s->set_hmirror(s, 1);
     }
     else
     {
@@ -161,6 +120,3 @@ void app_camera_run(void)
     xTaskCreate(app_camera_task, "app_camera_task", 4096, NULL, 5, NULL);
 }
 
-
-void app_camera_pause(void)
-{}

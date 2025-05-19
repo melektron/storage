@@ -28,13 +28,8 @@
 #define EXAMPLE_LCD_BL_LEDC_DUTY (1024)                // Set duty to 50%. (2 ** 13) * 50% = 4096
 #define EXAMPLE_LCD_BL_LEDC_FREQUENCY (10000)          // Frequency in Hertz. Set frequency at 5 kHz
 
-
-#define EXAMPLE_LVGL_TICK_PERIOD_MS         2
 #define EXAMPLE_LVGL_TASK_MAX_DELAY_MS      500
-#define EXAMPLE_LVGL_TASK_MIN_DELAY_MS      1
 
 
 void bsp_lv_port_init(void);
 void bsp_lv_port_run(void);
-bool lvgl_lock(int timeout_ms);
-void lvgl_unlock(void);
