@@ -1,162 +1,230 @@
-#include "bsp_lv_port.h"
+
+#include <esp_timer.h>
+#include <esp_lcd_panel_io.h>
+#include <esp_lcd_panel_st7789.h>
+#include <esp_lcd_panel_ops.h>
+#include <driver/spi_master.h>
+#include <driver/ledc.h>
+#include <driver/gpio.h>
 
 #include <Arduino.h>
-
-#include "esp_timer.h"
-#include "bsp_cst816.h"
-#include "SPI.h"
-
-#include "bsp_spi.h"
-
 #include <lvgl.h>
-// #include "demos/lv_demos.h"
-#include <Arduino_GFX_Library.h>
+
+#include "bsp_lv_port.h"
+#include "bsp_cst816.h"
+
 
 static const char *TAG = "bsp_lv_port";
 
 static SemaphoreHandle_t lvgl_api_mux = NULL;
+static SemaphoreHandle_t flush_wait_sem = nullptr;
+static SemaphoreHandle_t flush_wait_sem2 = nullptr;
 
-#define GFX_BL 1
+lv_display_t *display1;
+esp_lcd_panel_handle_t panel_handle;
 
 /* More data bus class: https://github.com/moononournation/Arduino_GFX/wiki/Data-Bus-Class */
-Arduino_DataBus *bus = new Arduino_ESP32SPI(
-  EXAMPLE_PIN_NUM_LCD_DC /* DC */, EXAMPLE_PIN_NUM_LCD_CS /* CS */,
-  EXAMPLE_PIN_NUM_LCD_SCLK /* SCK */, EXAMPLE_PIN_NUM_LCD_MOSI /* MOSI */, EXAMPLE_PIN_NUM_LCD_MISO /* MISO */, FSPI /* spi_num */, true);
+//Arduino_DataBus *bus = new Arduino_ESP32SPI(
+//  EXAMPLE_PIN_NUM_LCD_DC /* DC */, EXAMPLE_PIN_NUM_LCD_CS /* CS */,
+//  EXAMPLE_PIN_NUM_LCD_SCLK /* SCK */, EXAMPLE_PIN_NUM_LCD_MOSI /* MOSI */, EXAMPLE_PIN_NUM_LCD_MISO /* MISO */, FSPI /* spi_num */, true);
+//
+///* More display class: https://github.com/moononournation/Arduino_GFX/wiki/Display-Class */
+//Arduino_GFX *gfx = new Arduino_ST7789(
+//  bus, EXAMPLE_PIN_NUM_LCD_RST /* RST */, EXAMPLE_LCD_ROTATION /* rotation */, true /* IPS */,
+//  EXAMPLE_LCD_H_RES /* width */, EXAMPLE_LCD_V_RES /* height */);
 
-/* More display class: https://github.com/moononournation/Arduino_GFX/wiki/Display-Class */
-Arduino_GFX *gfx = new Arduino_ST7789(
-  bus, EXAMPLE_PIN_NUM_LCD_RST /* RST */, EXAMPLE_LCD_ROTATION /* rotation */, true /* IPS */,
-  EXAMPLE_LCD_H_RES /* width */, EXAMPLE_LCD_V_RES /* height */);
 
-
-bool lvgl_lock(int timeout_ms) {
-  // Convert timeout in milliseconds to FreeRTOS ticks
-  // If `timeout_ms` is set to -1, the program will block until the condition is met
-  const TickType_t timeout_ticks = (timeout_ms == -1) ? portMAX_DELAY : pdMS_TO_TICKS(timeout_ms);
-  return xSemaphoreTakeRecursive(lvgl_api_mux, timeout_ticks) == pdTRUE;
+bool lvgl_lock(int timeout_ms)
+{
+// Convert timeout in milliseconds to FreeRTOS ticks
+// If `timeout_ms` is set to -1, the program will block until the condition is met
+    const TickType_t timeout_ticks = (timeout_ms == -1) ? portMAX_DELAY : pdMS_TO_TICKS(timeout_ms);
+    return xSemaphoreTakeRecursive(lvgl_api_mux, timeout_ticks) == pdTRUE;
 }
 
-void lvgl_unlock(void) {
-  xSemaphoreGiveRecursive(lvgl_api_mux);
+void lvgl_unlock(void)
+{
+    xSemaphoreGiveRecursive(lvgl_api_mux);
 }
 
+uint32_t tstart = 0;
 
-
-static void example_lvgl_flush_cb(lv_display_t *display, const lv_area_t *area, uint8_t *pixel_map) {
-  uint32_t w = (area->x2 - area->x1 + 1);
-  uint32_t h = (area->y2 - area->y1 + 1);
-  uint32_t tstart = millis();
-  // copy a buffer's content to a specific area of the display
-  if (bsp_spi_lock(-1)) {
-#if (LV_COLOR_16_SWAP != 0)
-    gfx->draw16bitBeRGBBitmap(area->x1, area->y1, (uint16_t *)pixel_map, w, h);
-#else
-    gfx->draw16bitRGBBitmap(area->x1, area->y1, (uint16_t *)pixel_map, w, h);
-#endif
-    bsp_spi_unlock();
-  }
-  printf("%d ms\n\r", millis() - tstart);
-  lv_disp_flush_ready(display);
+static bool example_notify_lvgl_flush_ready(esp_lcd_panel_io_handle_t panel_io, esp_lcd_panel_io_event_data_t *edata, void *user_ctx)
+{
+    BaseType_t hptw;
+    //lv_disp_flush_ready(display1);    // we are instead using the flush_wait API
+    xSemaphoreGiveFromISR(flush_wait_sem, &hptw);
+    xSemaphoreGiveFromISR(flush_wait_sem2, &hptw);
+    return false;
 }
 
 
+static void example_lvgl_flush_cb(lv_display_t *display, const lv_area_t *area, uint8_t *pixel_map)
+{
+    tstart = millis();
+    printf("\r\nflush\r\n");
+    int offsetx1 = area->x1;
+    int offsetx2 = area->x2;
+    int offsety1 = area->y1;
+    int offsety2 = area->y2;
+    // copy a buffer's content to a specific area of the display
 
-static void example_lvgl_touch_cb(lv_indev_t *drv, lv_indev_data_t *data) {
-  uint16_t touchpad_x;
-  uint16_t touchpad_y;
-  bsp_touch_read();
-  if (bsp_touch_get_coordinates(&touchpad_x, &touchpad_y)) {
-    data->point.x = touchpad_x;
-    data->point.y = touchpad_y;
-    data->state = LV_INDEV_STATE_PRESSED;
-  } else {
-    data->state = LV_INDEV_STATE_RELEASED;
-  }
+    esp_lcd_panel_draw_bitmap(panel_handle, offsetx1, offsety1, offsetx2 + 1, offsety2 + 1, pixel_map);
+}
+
+static void example_flush_wait_cb(lv_display_t *display)
+{
+    printf("wait\r\n");
+    xSemaphoreTake(flush_wait_sem, portMAX_DELAY);
 }
 
 
-
-
-static void example_increase_lvgl_tick(void *arg) {
-  /* Tell LVGL how many milliseconds has elapsed */
-  lv_tick_inc(EXAMPLE_LVGL_TICK_PERIOD_MS);
-}
-
-void lvgl_tick_timer_init(uint32_t ms) {
-  ESP_LOGI(TAG, "Install LVGL tick timer");
-  // Tick interface for LVGL (using esp_timer to generate 2ms periodic event)
-  const esp_timer_create_args_t lvgl_tick_timer_args = {
-    .callback = &example_increase_lvgl_tick,
-    .name = "lvgl_tick"
-  };
-  esp_timer_handle_t lvgl_tick_timer = NULL;
-  ESP_ERROR_CHECK(esp_timer_create(&lvgl_tick_timer_args, &lvgl_tick_timer));
-  ESP_ERROR_CHECK(esp_timer_start_periodic(lvgl_tick_timer, ms * 1000));
-}
-
-
-void local_display_init(void) {
-  // Init Display
-  if (!gfx->begin()) {
-    Serial.println("gfx->begin() failed!");
-  }
-  gfx->fillScreen(RED);
-#ifdef GFX_BL
-  pinMode(GFX_BL, OUTPUT);
-  digitalWrite(GFX_BL, HIGH);
-#endif
-  delay(1000);
-  gfx->fillScreen(GREEN);
-  delay(1000);
-  gfx->fillScreen(BLUE);
-  delay(1000);
-}
-
-void local_touch_init(void) {
-  while (bsp_touch_init(&Wire,EXAMPLE_LCD_ROTATION, gfx->width(), gfx->height()) == false) {
-    delay(1000);
-  }
-}
-
-
-static void task(void *param) {
-  lvgl_tick_timer_init(EXAMPLE_LVGL_TICK_PERIOD_MS);
-  while (1) {
-    uint32_t task_delay_ms = EXAMPLE_LVGL_TASK_MAX_DELAY_MS;
-    while (1) {
-      // Lock the mutex due to the LVGL APIs are not thread-safe
-      if (lvgl_lock(-1)) {
-        task_delay_ms = lv_timer_handler();
-        // Release the mutex
-        lvgl_unlock();
-      }
-      if (task_delay_ms > EXAMPLE_LVGL_TASK_MAX_DELAY_MS) {
-        task_delay_ms = EXAMPLE_LVGL_TASK_MAX_DELAY_MS; // This will happen when LV_NO_TIMER_READY is returned
-      } else if (task_delay_ms < EXAMPLE_LVGL_TASK_MIN_DELAY_MS) {
-        task_delay_ms = EXAMPLE_LVGL_TASK_MIN_DELAY_MS;
-      }
-      vTaskDelay(pdMS_TO_TICKS(task_delay_ms));
+static void example_lvgl_touch_cb(lv_indev_t *drv, lv_indev_data_t *data)
+{
+    uint16_t touchpad_x;
+    uint16_t touchpad_y;
+    bsp_touch_read();
+    if (bsp_touch_get_coordinates(&touchpad_x, &touchpad_y))
+    {
+        data->point.x = touchpad_x;
+        data->point.y = touchpad_y;
+        data->state = LV_INDEV_STATE_PRESSED;
     }
-  }
+    else
+    {
+        data->state = LV_INDEV_STATE_RELEASED;
+    }
 }
 
 
-void bsp_lv_port_init(void) {
-    
+void local_display_init(void)
+{
+
+    ESP_LOGI(TAG, "SPI BUS init");
+    spi_bus_config_t buscfg = {};
+    buscfg.sclk_io_num = EXAMPLE_PIN_NUM_LCD_SCLK;
+    buscfg.mosi_io_num = EXAMPLE_PIN_NUM_LCD_MOSI;
+    buscfg.miso_io_num = EXAMPLE_PIN_NUM_LCD_MISO;
+    buscfg.quadwp_io_num = -1;
+    buscfg.quadhd_io_num = -1;
+    buscfg.max_transfer_sz = 4000;
+    ESP_ERROR_CHECK(spi_bus_initialize(EXAMPLE_SPI_HOST, &buscfg, SPI_DMA_CH_AUTO));
+    ESP_LOGI(TAG, "Install panel IO");
+
+    esp_lcd_panel_io_handle_t io_handle = NULL;
+
+    esp_lcd_panel_io_spi_config_t io_config = {};
+    io_config.dc_gpio_num = EXAMPLE_PIN_NUM_LCD_DC;
+    io_config.cs_gpio_num = EXAMPLE_PIN_NUM_LCD_CS;
+    io_config.pclk_hz = EXAMPLE_LCD_PIXEL_CLOCK_HZ;
+    io_config.lcd_cmd_bits = EXAMPLE_LCD_CMD_BITS;
+    io_config.lcd_param_bits = EXAMPLE_LCD_PARAM_BITS;
+    io_config.spi_mode = 0;
+    io_config.trans_queue_depth = 10;
+    io_config.on_color_trans_done = example_notify_lvgl_flush_ready;
+    // Attach the LCD to the SPI bus
+    ESP_ERROR_CHECK(esp_lcd_new_panel_io_spi((esp_lcd_spi_bus_handle_t)EXAMPLE_SPI_HOST, &io_config, &io_handle));
+
+    esp_lcd_panel_dev_config_t panel_config = {};
+    panel_config.reset_gpio_num = EXAMPLE_PIN_NUM_LCD_RST;
+    panel_config.rgb_ele_order = LCD_RGB_ELEMENT_ORDER_RGB;
+    panel_config.bits_per_pixel = 16;
+    ESP_LOGI(TAG, "Install ST7789 panel driver");
+    ESP_ERROR_CHECK(esp_lcd_new_panel_st7789(io_handle, &panel_config, &panel_handle));
+
+    ESP_ERROR_CHECK(esp_lcd_panel_reset(panel_handle));
+    ESP_ERROR_CHECK(esp_lcd_panel_init(panel_handle));
+    ESP_ERROR_CHECK(esp_lcd_panel_mirror(panel_handle, true, false));
+    ESP_ERROR_CHECK(esp_lcd_panel_swap_xy(panel_handle, true));
+    ESP_ERROR_CHECK(esp_lcd_panel_disp_on_off(panel_handle, true));
+    ESP_ERROR_CHECK(esp_lcd_panel_invert_color(panel_handle, true));
+
+    // configure backlight
+
+    gpio_set_direction((gpio_num_t)EXAMPLE_PIN_NUM_LCD_BL, GPIO_MODE_OUTPUT);
+    gpio_set_level((gpio_num_t)EXAMPLE_PIN_NUM_LCD_BL, 1);
+
+    // Prepare and then apply the LEDC PWM timer configuration
+    ledc_timer_config_t ledc_timer = {};
+    ledc_timer.speed_mode = EXAMPLE_LCD_BL_LEDC_MODE;
+    ledc_timer.timer_num = EXAMPLE_LCD_BL_LEDC_TIMER;
+    ledc_timer.duty_resolution = EXAMPLE_LCD_BL_LEDC_DUTY_RES;
+    ledc_timer.freq_hz = EXAMPLE_LCD_BL_LEDC_FREQUENCY; // Set output frequency at 5 kHz
+    ledc_timer.clk_cfg = LEDC_AUTO_CLK;
+    ESP_ERROR_CHECK(ledc_timer_config(&ledc_timer));
+
+    // Prepare and then apply the LEDC PWM channel configuration
+    ledc_channel_config_t ledc_channel = {};
+    ledc_channel.speed_mode = EXAMPLE_LCD_BL_LEDC_MODE;
+    ledc_channel.channel = EXAMPLE_LCD_BL_LEDC_CHANNEL;
+    ledc_channel.timer_sel = EXAMPLE_LCD_BL_LEDC_TIMER;
+    ledc_channel.intr_type = LEDC_INTR_DISABLE;
+    ledc_channel.gpio_num = EXAMPLE_PIN_NUM_LCD_BL;
+    ledc_channel.duty = 0, // Set duty to 0
+        ledc_channel.hpoint = 0;
+    ESP_ERROR_CHECK(ledc_channel_config(&ledc_channel));
+
+    // for now just set to full brightness
+    ESP_ERROR_CHECK(ledc_set_duty(EXAMPLE_LCD_BL_LEDC_MODE, EXAMPLE_LCD_BL_LEDC_CHANNEL, 1023));
+    ESP_ERROR_CHECK(ledc_update_duty(EXAMPLE_LCD_BL_LEDC_MODE, EXAMPLE_LCD_BL_LEDC_CHANNEL));
+}
+
+void local_touch_init(void)
+{
+    while (bsp_touch_init(&Wire, EXAMPLE_LCD_ROTATION, EXAMPLE_LCD_H_RES, EXAMPLE_LCD_V_RES) == false)
+    {
+        delay(1000);
+    }
+}
+
+
+static void task(void *param)
+{
+
+    while (1)
+    {
+        uint32_t task_delay_ms = EXAMPLE_LVGL_TASK_MAX_DELAY_MS;
+        while (1)
+        {
+            // Lock the mutex due to the LVGL APIs are not thread-safe
+            if (lvgl_lock(-1))
+            {
+                task_delay_ms = lv_timer_handler();
+                // Release the mutex
+                lvgl_unlock();
+            }
+            if (task_delay_ms > EXAMPLE_LVGL_TASK_MAX_DELAY_MS)
+            {
+                task_delay_ms = EXAMPLE_LVGL_TASK_MAX_DELAY_MS; // This will happen when LV_NO_TIMER_READY is returned
+            }
+            else if (task_delay_ms < EXAMPLE_LVGL_TASK_MIN_DELAY_MS)
+            {
+                task_delay_ms = EXAMPLE_LVGL_TASK_MIN_DELAY_MS;
+            }
+            vTaskDelay(pdMS_TO_TICKS(task_delay_ms));
+        }
+    }
+}
+
+
+void bsp_lv_port_init(void)
+{
     local_display_init();
     local_touch_init();
-    
-    lvgl_api_mux = xSemaphoreCreateRecursiveMutex();
-    lv_init();
 
-    //static lv_disp_draw_buf_t disp_buf;  // contains internal graphic buffer(s) called draw buffer(s)
-    //static lv_disp_drv_t disp_drv;       // contains callback functions
-    static lv_display_t *display1 = lv_display_create(gfx->width(), gfx->height());
-    
+    lvgl_api_mux = xSemaphoreCreateRecursiveMutex();
+    flush_wait_sem = xSemaphoreCreateBinary();
+    flush_wait_sem2 = xSemaphoreCreateBinary();
+
+    lv_init();
+    lv_tick_set_cb(xTaskGetTickCount);
+
+    display1 = lv_display_create(EXAMPLE_LCD_H_RES, EXAMPLE_LCD_V_RES);
+
     // alloc draw buffers used by LVGL
     // it's recommended to choose the size of the draw buffer(s) to be at least 1/10 screen sized
-    #define BYTES_PER_PIXEL (LV_COLOR_DEPTH >> 3)   // LV_COLOR_DEPTH / 8
-    #define BUFFER_SIZE (EXAMPLE_LCD_H_RES * EXAMPLE_LCD_V_RES * BYTES_PER_PIXEL / 10)
+#define BYTES_PER_PIXEL (LV_COLOR_DEPTH >> 3)   // LV_COLOR_DEPTH / 8
+#define BUFFER_SIZE (EXAMPLE_LCD_H_RES * EXAMPLE_LCD_V_RES * BYTES_PER_PIXEL / 5)
     uint8_t *buf1 = (uint8_t *)heap_caps_malloc(BUFFER_SIZE, MALLOC_CAP_INTERNAL);
     assert(buf1);
     uint8_t *buf2 = (uint8_t *)heap_caps_malloc(BUFFER_SIZE, MALLOC_CAP_INTERNAL);
@@ -164,41 +232,33 @@ void bsp_lv_port_init(void) {
 
     lv_display_set_buffers(display1, buf1, buf2, BUFFER_SIZE, LV_DISPLAY_RENDER_MODE_PARTIAL);
     lv_display_set_flush_cb(display1, example_lvgl_flush_cb);
-
-    // initialize LVGL draw buffers
-    //lv_disp_draw_buf_init(&disp_buf, buf1, buf2, EXAMPLE_LCD_H_RES * EXAMPLE_LCD_V_RES / 10);
-    //lv_disp_drv_init(&disp_drv);
-    //disp_drv.hor_res = gfx->width();
-    //disp_drv.ver_res = gfx->height();
-    //disp_drv.flush_cb = example_lvgl_flush_cb;
-    //// disp_drv.drv_update_cb = example_lvgl_port_update_callback;
-    //disp_drv.draw_buf = &disp_buf;
-    //disp_drv.full_refresh = 1;
-    //// disp_drv.user_data = panel_handle;
-    //lv_disp_t *disp = lv_disp_drv_register(&disp_drv);
+    lv_display_set_flush_wait_cb(display1, example_flush_wait_cb);
 
     static lv_indev_t *indev_touchscreen = lv_indev_create();
     lv_indev_set_type(indev_touchscreen, LV_INDEV_TYPE_POINTER);
     lv_indev_set_read_cb(indev_touchscreen, example_lvgl_touch_cb);
     //lv_indev_set_display()    // maybe needed to use display other than default display but we only have one so doesn't matter
 
-
-    //static lv_indev_drv_t indev_drv;  // Input device driver (Touch)
-//
-    //lv_indev_drv_init(&indev_drv);
-    //indev_drv.type = LV_INDEV_TYPE_POINTER;
-    //indev_drv.disp = disp;
-    //indev_drv.read_cb = example_lvgl_touch_cb;
-    //// indev_drv.user_data = tp;
-//
-    //lv_indev_drv_register(&indev_drv);
-
-    // lv_demo_widgets();
-
     printf("past init\r\n");
 }
 
 void bsp_lv_port_run(void)
 {
-  xTaskCreatePinnedToCore(task, "bsp_lv_port_task", 1024 * 10, NULL, 5, NULL, 1);
+    xTaskCreatePinnedToCore(task, "bsp_lv_port_task", 1024 * 10, NULL, 5, NULL, 1);
+
+    xTaskCreate(
+        [](void *param) {
+        for (;;)
+        {
+            xSemaphoreTake(flush_wait_sem2, portMAX_DELAY);
+            printf("%d ms\n\r", millis() - tstart);
+        }
+        vTaskDelete(NULL);
+    },
+        "test",
+        1024 * 4,
+        nullptr,
+        5,
+        nullptr
+    );
 }

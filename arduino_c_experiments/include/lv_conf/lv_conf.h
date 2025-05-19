@@ -29,6 +29,14 @@
 /*Color depth: 1 (I1), 8 (L8), 16 (RGB565), 24 (RGB888), 32 (XRGB8888)*/
 #define LV_COLOR_DEPTH 16
 
+// ======== ATTENTION =========
+// CUSTOM ADDITION: 16 Bit color Byte swap NEEDED FOR esp_lcd to work as
+// expects color to be provided in regular order, unlike the reverseorder 
+// that LVGL uses! This feature was originally removed in LVGL9 and then 
+// added back but not to the default config
+#define LV_COLOR_16_SWAP 1
+// ===== END OF ATTENTION =====
+
 /*=========================
    STDLIB WRAPPER SETTINGS
  *=========================*/

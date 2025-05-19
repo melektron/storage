@@ -21,7 +21,7 @@ void setup() {
   Serial.begin(115200);
   bsp_i2c_init();
   bsp_lv_port_init();
-  bsp_spi_init();
+  //bsp_spi_init();
 
   bsp_lv_port_run();
 

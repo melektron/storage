@@ -35,9 +35,9 @@ static camera_config_t camera_config = {
     .frame_size = FRAMESIZE_240X240,   // QQVGA-UXGA, For ESP32, do not use sizes above QVGA when not JPEG. The performance of the ESP32-S series has improved a lot, but JPEG mode always gives better frame rates.
 
     .jpeg_quality = 12,  // 0-63, for OV series camera sensors, lower number means higher quality
-    .fb_count = 1,       // When jpeg mode is used, if fb_count more than one, the driver will work in continuous mode.
-    .fb_location = CAMERA_FB_IN_DRAM,
-    .grab_mode = CAMERA_GRAB_LATEST,
+    .fb_count = 2,       // When jpeg mode is used, if fb_count more than one, the driver will work in continuous mode.
+    .fb_location = CAMERA_FB_IN_PSRAM,
+    .grab_mode = CAMERA_GRAB_WHEN_EMPTY,
 };
 
 void flip_fb(uint8_t *fb, uint32_t width, uint32_t height)
@@ -121,7 +121,7 @@ void app_camera_task(void *arg)
              * Alternatively we could copy the buffer out of the camera DMA buffer (would probably be better anyway)
              */
             lv_draw_sw_rgb565_swap(pic->buf, 240*240);
-            flip_fb(pic->buf, 240, 240);
+            //flip_fb(pic->buf, 240, 240);
             img_dsc.data = pic->buf;
             if (lvgl_lock(-1))
             {
@@ -129,9 +129,13 @@ void app_camera_task(void *arg)
                 lvgl_unlock();
             }
         }
+        else
+        {
+            printf("pic null\r\n");
+        }
         // buffer will be returned before next frame
 
-        vTaskDelay(pdMS_TO_TICKS(100));
+        vTaskDelay(pdMS_TO_TICKS(50));
     }
     vTaskDelete(NULL);
 }
@@ -144,7 +148,11 @@ void app_camera_init(void)
     {
         sensor_t *s = esp_camera_sensor_get();
         s->set_vflip(s, 1);
-        // s->set_hmirror(s, 1);
+        //s->set_hmirror(s, 1);
+    }
+    else
+    {
+        printf("camera init error: %s\r\n", esp_err_to_name(cam_err));
     }
 }
 

@@ -9,7 +9,7 @@
 #include "../lvgl_ui/lvgl_ui.h"
 #include "../../bsp_lv_port.h"
 
-#include "../../bsp_spi.h"
+//#include "../../bsp_spi.h"
 #include "SD.h"
 #include "SPI.h"
 
@@ -36,27 +36,27 @@ void app_system_task(void *arg) {
   psram_size = esp_psram_get_size();
 
 
-  if (bsp_spi_lock(-1)) {
-    if (SD.begin(EXAMPLE_PIN_NUM_SD_CS, bsp_spi)) {
-      uint8_t cardType = SD.cardType();
-      if (cardType == CARD_NONE) {
-        Serial.println("No SD card attached");
-      }
-
-      Serial.print("SD Card Type: ");
-      if (cardType == CARD_MMC) {
-        Serial.println("MMC");
-      } else if (cardType == CARD_SD) {
-        Serial.println("SDSC");
-      } else if (cardType == CARD_SDHC) {
-        Serial.println("SDHC");
-      } else {
-        Serial.println("UNKNOWN");
-      }
-      sd_size = (uint32_t)(SD.cardSize() / (1024 * 1024));
-    }
-    bsp_spi_unlock();
-  }
+  //if (bsp_spi_lock(-1)) {
+  //  if (SD.begin(EXAMPLE_PIN_NUM_SD_CS, bsp_spi)) {
+  //    uint8_t cardType = SD.cardType();
+  //    if (cardType == CARD_NONE) {
+  //      Serial.println("No SD card attached");
+  //    }
+//
+  //    Serial.print("SD Card Type: ");
+  //    if (cardType == CARD_MMC) {
+  //      Serial.println("MMC");
+  //    } else if (cardType == CARD_SD) {
+  //      Serial.println("SDSC");
+  //    } else if (cardType == CARD_SDHC) {
+  //      Serial.println("SDHC");
+  //    } else {
+  //      Serial.println("UNKNOWN");
+  //    }
+  //    sd_size = (uint32_t)(SD.cardSize() / (1024 * 1024));
+  //  }
+  //  bsp_spi_unlock();
+  //}
   if (lvgl_lock(-1)) {
 
     snprintf(str, sizeof(str), "%dM", flash_size / (uint32_t)(1024 * 1024));
