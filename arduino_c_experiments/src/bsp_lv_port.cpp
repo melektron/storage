@@ -8,7 +8,7 @@
 
 #include "bsp_spi.h"
 
-#include "lvgl.h"
+#include <lvgl.h>
 // #include "demos/lv_demos.h"
 #include <Arduino_GFX_Library.h>
 
@@ -42,24 +42,26 @@ void lvgl_unlock(void) {
 
 
 
-static void example_lvgl_flush_cb(lv_disp_drv_t *drv, const lv_area_t *area, lv_color_t *color_map) {
+static void example_lvgl_flush_cb(lv_display_t *display, const lv_area_t *area, uint8_t *pixel_map) {
   uint32_t w = (area->x2 - area->x1 + 1);
   uint32_t h = (area->y2 - area->y1 + 1);
+  uint32_t tstart = millis();
   // copy a buffer's content to a specific area of the display
   if (bsp_spi_lock(-1)) {
 #if (LV_COLOR_16_SWAP != 0)
-    gfx->draw16bitBeRGBBitmap(area->x1, area->y1, (uint16_t *)&color_map->full, w, h);
+    gfx->draw16bitBeRGBBitmap(area->x1, area->y1, (uint16_t *)pixel_map, w, h);
 #else
-    gfx->draw16bitRGBBitmap(area->x1, area->y1, (uint16_t *)&color_map->full, w, h);
+    gfx->draw16bitRGBBitmap(area->x1, area->y1, (uint16_t *)pixel_map, w, h);
 #endif
     bsp_spi_unlock();
   }
-  lv_disp_flush_ready(drv);
+  printf("%d ms\n\r", millis() - tstart);
+  lv_disp_flush_ready(display);
 }
 
 
 
-static void example_lvgl_touch_cb(lv_indev_drv_t *drv, lv_indev_data_t *data) {
+static void example_lvgl_touch_cb(lv_indev_t *drv, lv_indev_data_t *data) {
   uint16_t touchpad_x;
   uint16_t touchpad_y;
   bsp_touch_read();
@@ -93,7 +95,7 @@ void lvgl_tick_timer_init(uint32_t ms) {
 }
 
 
-void lv_display_init(void) {
+void local_display_init(void) {
   // Init Display
   if (!gfx->begin()) {
     Serial.println("gfx->begin() failed!");
@@ -110,7 +112,7 @@ void lv_display_init(void) {
   delay(1000);
 }
 
-void lv_touch_init(void) {
+void local_touch_init(void) {
   while (bsp_touch_init(&Wire,EXAMPLE_LCD_ROTATION, gfx->width(), gfx->height()) == false) {
     delay(1000);
   }
@@ -129,7 +131,7 @@ static void task(void *param) {
         lvgl_unlock();
       }
       if (task_delay_ms > EXAMPLE_LVGL_TASK_MAX_DELAY_MS) {
-        task_delay_ms = EXAMPLE_LVGL_TASK_MAX_DELAY_MS;
+        task_delay_ms = EXAMPLE_LVGL_TASK_MAX_DELAY_MS; // This will happen when LV_NO_TIMER_READY is returned
       } else if (task_delay_ms < EXAMPLE_LVGL_TASK_MIN_DELAY_MS) {
         task_delay_ms = EXAMPLE_LVGL_TASK_MIN_DELAY_MS;
       }
@@ -140,49 +142,60 @@ static void task(void *param) {
 
 
 void bsp_lv_port_init(void) {
+    
+    local_display_init();
+    local_touch_init();
+    
+    lvgl_api_mux = xSemaphoreCreateRecursiveMutex();
+    lv_init();
 
-  static lv_disp_draw_buf_t disp_buf;  // contains internal graphic buffer(s) called draw buffer(s)
-  static lv_disp_drv_t disp_drv;       // contains callback functions
+    //static lv_disp_draw_buf_t disp_buf;  // contains internal graphic buffer(s) called draw buffer(s)
+    //static lv_disp_drv_t disp_drv;       // contains callback functions
+    static lv_display_t *display1 = lv_display_create(gfx->width(), gfx->height());
+    
+    // alloc draw buffers used by LVGL
+    // it's recommended to choose the size of the draw buffer(s) to be at least 1/10 screen sized
+    #define BYTES_PER_PIXEL (LV_COLOR_DEPTH >> 3)   // LV_COLOR_DEPTH / 8
+    #define BUFFER_SIZE (EXAMPLE_LCD_H_RES * EXAMPLE_LCD_V_RES * BYTES_PER_PIXEL / 10)
+    uint8_t *buf1 = (uint8_t *)heap_caps_malloc(BUFFER_SIZE, MALLOC_CAP_INTERNAL);
+    assert(buf1);
+    uint8_t *buf2 = (uint8_t *)heap_caps_malloc(BUFFER_SIZE, MALLOC_CAP_INTERNAL);
+    assert(buf2);
 
-  static lv_indev_drv_t indev_drv;  // Input device driver (Touch)
+    lv_display_set_buffers(display1, buf1, buf2, BUFFER_SIZE, LV_DISPLAY_RENDER_MODE_PARTIAL);
+    lv_display_set_flush_cb(display1, example_lvgl_flush_cb);
 
-  lvgl_api_mux = xSemaphoreCreateRecursiveMutex();
-  lv_init();
+    // initialize LVGL draw buffers
+    //lv_disp_draw_buf_init(&disp_buf, buf1, buf2, EXAMPLE_LCD_H_RES * EXAMPLE_LCD_V_RES / 10);
+    //lv_disp_drv_init(&disp_drv);
+    //disp_drv.hor_res = gfx->width();
+    //disp_drv.ver_res = gfx->height();
+    //disp_drv.flush_cb = example_lvgl_flush_cb;
+    //// disp_drv.drv_update_cb = example_lvgl_port_update_callback;
+    //disp_drv.draw_buf = &disp_buf;
+    //disp_drv.full_refresh = 1;
+    //// disp_drv.user_data = panel_handle;
+    //lv_disp_t *disp = lv_disp_drv_register(&disp_drv);
 
-  lv_display_init();
-  lv_touch_init();
+    static lv_indev_t *indev_touchscreen = lv_indev_create();
+    lv_indev_set_type(indev_touchscreen, LV_INDEV_TYPE_POINTER);
+    lv_indev_set_read_cb(indev_touchscreen, example_lvgl_touch_cb);
+    //lv_indev_set_display()    // maybe needed to use display other than default display but we only have one so doesn't matter
 
-  // alloc draw buffers used by LVGL
-  // it's recommended to choose the size of the draw buffer(s) to be at least 1/10 screen sized
-  lv_color_t *buf1 = (lv_color_t *)heap_caps_malloc(EXAMPLE_LCD_H_RES * EXAMPLE_LCD_V_RES * sizeof(lv_color_t), MALLOC_CAP_SPIRAM);
-  assert(buf1);
-  lv_color_t *buf2 = (lv_color_t *)heap_caps_malloc(EXAMPLE_LCD_H_RES * EXAMPLE_LCD_V_RES * sizeof(lv_color_t), MALLOC_CAP_SPIRAM);
-  assert(buf2);
-  // initialize LVGL draw buffers
-  lv_disp_draw_buf_init(&disp_buf, buf1, buf2, EXAMPLE_LCD_H_RES * EXAMPLE_LCD_V_RES);
 
-  lv_disp_drv_init(&disp_drv);
-  disp_drv.hor_res = gfx->width();
-  disp_drv.ver_res = gfx->height();
-  disp_drv.flush_cb = example_lvgl_flush_cb;
-  // disp_drv.drv_update_cb = example_lvgl_port_update_callback;
-  disp_drv.draw_buf = &disp_buf;
-  disp_drv.full_refresh = 1;
-  // disp_drv.user_data = panel_handle;
-  lv_disp_t *disp = lv_disp_drv_register(&disp_drv);
-  
+    //static lv_indev_drv_t indev_drv;  // Input device driver (Touch)
+//
+    //lv_indev_drv_init(&indev_drv);
+    //indev_drv.type = LV_INDEV_TYPE_POINTER;
+    //indev_drv.disp = disp;
+    //indev_drv.read_cb = example_lvgl_touch_cb;
+    //// indev_drv.user_data = tp;
+//
+    //lv_indev_drv_register(&indev_drv);
 
-  lv_indev_drv_init(&indev_drv);
-  indev_drv.type = LV_INDEV_TYPE_POINTER;
-  indev_drv.disp = disp;
-  indev_drv.read_cb = example_lvgl_touch_cb;
-  // indev_drv.user_data = tp;
+    // lv_demo_widgets();
 
-  lv_indev_drv_register(&indev_drv);
-
-  // lv_demo_widgets();
-
-  
+    printf("past init\r\n");
 }
 
 void bsp_lv_port_run(void)
