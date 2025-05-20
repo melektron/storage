@@ -21,6 +21,8 @@ void lvgl_ui_init(void)
     wifi_tab_create(tab);
     tab = lv_tabview_add_tab(tabview, "Anim");
     animtest_tab_create(tab);
+    tab = lv_tabview_add_tab(tabview, "ScFl");
+    scrollflex_tab_create(tab);
 
     // style the tab buttons
     lv_obj_t * tab_bar = lv_tabview_get_tab_bar(tabview);
