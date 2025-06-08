@@ -6,12 +6,14 @@
 
 #include "lvgl.h"
 #include "src/lvgl_ui/lvgl_ui.h"
+#include <esp_log.h>
 #include <WiFi.h>
 
 #include "src/app/app_qmi8658.h"
 #include "src/app/app_system.h"
 #include "src/app/app_camera.h"
 #include "src/app/app_wifi.h"
+#include "nfc.hpp"
 
 char sta_ssid[] = "waveshare";
 char sta_pass[] = "12345678";
@@ -37,6 +39,8 @@ void setup()
     app_system_run();
     app_camera_run();
     app_wifi_run();
+
+    nfc::initialize();
 }
 
 

@@ -7,7 +7,6 @@ fn main() {
     esp_idf_svc::log::EspLogger::initialize_default();
     //use esp_idf_svc::hal::gpio;
     //let mypin = esp_idf_svc::hal::gpio::PinDriver::output(gpio::Gpio12);
-
     //esp_idf_svc::sys::esp_lcd_panel_draw_bitmap(panel, x_start, y_start, x_end, y_end, color_data)
 
     log::info!("Hello, world!");
