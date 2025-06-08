@@ -1,0 +1,3 @@
+[submodule "libs/el_std_cpp"]
+	path = libs/el_std_cpp
+	url = https://github.com/melektron/el_std_cpp.git
