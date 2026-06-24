@@ -5,15 +5,15 @@
         },
         {
             "name": "espidf_c_experiments",
-            "path": "espidf_c_experiments"
+            "path": "devices/espidf_c_experiments"
         },
         {
             "name": "arduino_c_experiments",
-            "path": "arduino_c_experiments"
+            "path": "devices/arduino_c_experiments"
         },
         {
             "name": "espidf_arduino_test",
-            "path": "espidf_arduino_test"
+            "path": "devices/espidf_arduino_test"
         }
     ],
     "settings": {}
