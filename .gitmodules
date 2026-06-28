@@ -1,3 +1,6 @@
 [submodule "libs/el_std_cpp"]
-	path = devices/libs/el_std_cpp
+	path = libs/el_std_cpp
 	url = https://github.com/melektron/el_std_cpp.git
+[submodule "libs/el_std_rs"]
+	path = libs/el_std_rs
+	url = https://github.com/melektron/el_std_rs.git

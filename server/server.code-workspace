@@ -1,0 +1,11 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../libs/el_std_rs"
+		}
+	],
+    "settings": {}
+}
