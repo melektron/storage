@@ -11,6 +11,7 @@ mod app;
 mod args;
 mod repl;
 mod webserver;
+mod api;
 
 use std::process::ExitCode;
 

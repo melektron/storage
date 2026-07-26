@@ -41,4 +41,11 @@ pub struct Args {
     /// Port to listen on for HTTP connections
     #[arg(long, default_value = "1234")]
     pub listen_port: u16,
+
+    #[cfg(feature = "dev-proxy")]
+    /// URL of dev server to route UI requests to 
+    /// during development (this only exists on dev builds).
+    /// HTTPS is not supported.
+    #[arg(long, default_value = "http://localhost:5173")]
+    pub dev_server_url: String,
 }

@@ -7,5 +7,7 @@
 			"path": "../libs/el_std_rs"
 		}
 	],
-    "settings": {}
+    "settings": {
+        "rust-analyzer.cargo.features": "all"
+    }
 }

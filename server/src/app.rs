@@ -7,16 +7,14 @@ www.elektron.work
 
 */
 
-use std::{
-    fs,
-    path::{PathBuf},
-    sync::Arc,
-};
+use std::{fs, path::PathBuf, sync::Arc, time::Duration};
 
 use anyhow::{Context, Result};
 use el_std::terminal::{ReplIo, ReplLineHandler};
+use entity::prelude::*;
 use log::info;
-use sea_orm::{Database, DatabaseConnection};
+use migration::MigratorTrait;
+use sea_orm::{ConnectOptions, Database, DatabaseConnection, EntityTrait};
 use tokio_util::sync::CancellationToken;
 
 use crate::{args::Args, repl::Repl, webserver::WebServer};
@@ -36,10 +34,7 @@ pub struct App {
 }
 
 impl App {
-    pub async fn new(
-        args: Args, 
-        repl_io: Option<ReplIo>
-    ) -> Result<Self> {
+    pub async fn new(args: Args, repl_io: Option<ReplIo>) -> Result<Self> {
         // make sure the data directory exists
         fs::create_dir_all(args.data.as_path()).context("failed to create data directory")?;
         let data_path = fs::canonicalize(args.data.as_path())?;
@@ -55,7 +50,16 @@ impl App {
 
         // try to connect to database
         let db_url = format!("sqlite://{}?mode=rwc", app_state.db_path.display());
-        let db = Database::connect(db_url).await?;
+        let db = Database::connect(
+            ConnectOptions::new(db_url)
+                .connect_timeout(Duration::from_secs(10))
+                .acquire_timeout(Duration::from_secs(10))
+                //.sqlx_logging(false)
+                // log SQL statements with trace level so they are available for debugging
+                .sqlx_logging_level(log::LevelFilter::Trace)
+                .to_owned(),
+        )
+        .await?;
 
         let web_server = Arc::new(WebServer::new(&app_state, &db));
         let repl = Arc::new(Repl::new(&app_state, repl_io));
@@ -73,6 +77,22 @@ impl App {
             "Storing user data in {}",
             self.app_state.args.data.display()
         );
+
+        // migrate database to current version
+        info!("Checking for database migrations...");
+        let nr_pending_migrations = migration::Migrator::get_pending_migrations(&self.db)
+            .await
+            .context("failed to check pending migrations")?
+            .len();
+        if nr_pending_migrations > 0 {
+            info!("{nr_pending_migrations} migration(s) pending");
+            migration::Migrator::up(&self.db, None)
+                .await
+                .context("failed to apply migrations")?;
+            info!("DB migration successful");
+        } else {
+            info!("DB up to date, no migrations required");
+        }
 
         // run all components until all complete or one fails.
         tokio::try_join!(
