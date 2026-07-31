@@ -1,0 +1,35 @@
+
+[package]
+name = "storage_core"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+# local
+migration = { workspace = true }
+entity = { workspace = true }
+
+# external
+el_std = { workspace = true }
+
+# 3rd party
+anyhow = { workspace = true }
+log = { workspace = true }
+tokio = { workspace = true, features = ["full"] }
+tokio-util = { workspace = true }
+futures = { workspace = true }
+
+shell-words = { workspace = true }
+clap = { workspace = true, features = ["derive"] }
+
+axum = { workspace = true, features = ["ws"] }
+axum-client-ip = { workspace = true }
+axum-reverse-proxy = { workspace = true, optional = true }
+tower-http = { workspace = true, features = ["fs"], optional = true }
+dioxus = { workspace = true, features = ["fullstack", "server"] }
+dioxus-cli-config = { workspace = true, optional = true }
+
+sea-orm = { workspace = true, features = [ "sqlx-sqlite", "runtime-tokio-rustls", "macros" ] }
+
+[features]
+dev-proxy = ["dep:axum-reverse-proxy"]

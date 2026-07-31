@@ -3,18 +3,20 @@
         {
             "path": "."
         },
-        {
-            "name": "espidf_c_experiments",
-            "path": "devices/espidf_c_experiments"
-        },
-        {
-            "name": "arduino_c_experiments",
-            "path": "devices/arduino_c_experiments"
-        },
-        {
-            "name": "espidf_arduino_test",
-            "path": "devices/espidf_arduino_test"
-        }
+        //{
+        //    "name": "espidf_c_experiments",
+        //    "path": "devices/espidf_c_experiments"
+        //},
+        //{
+        //    "name": "arduino_c_experiments",
+        //    "path": "devices/arduino_c_experiments"
+        //},
+        //{
+        //    "name": "espidf_arduino_test",
+        //    "path": "devices/espidf_arduino_test"
+        //}
     ],
-    "settings": {}
+    "settings": {
+        "rust-analyzer.cargo.features": "all"
+    }
 }

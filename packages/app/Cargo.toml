@@ -1,0 +1,54 @@
+[package]
+name = "app"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+dioxus = { workspace = true, features = ["fullstack"] }
+anyhow = { workspace = true }
+log = { workspace = true }
+
+web = { workspace = true, optional = true }
+# possible dedicated UI crates for desktop and mobile in the future,
+# for now we just use web for everything
+
+# server only
+storage_core = { workspace = true, optional = true }
+# this is indirectly depended upon through web -> ui -> api
+# note: it's very important to pass the "server" feature flag all the way to API.
+# otherwise the server functions won't get compiled on the server and lead to 404s
+#api = { workspace = true, optional = true }
+entity = { workspace = true, optional = true }
+migration = { workspace = true, optional = true }
+axum = { workspace = true, optional = true }
+tokio = { workspace = true, features = ["full"], optional = true }
+tokio-util = { workspace = true, optional = true }
+clap = { workspace = true, optional = true }
+el_std = { workspace = true, optional = true }
+sea-orm = { workspace = true, features = [ "sqlx-sqlite", "runtime-tokio-rustls", "macros" ], optional = true }
+
+
+
+[features] 
+default = ["server"]
+server = [
+    "dioxus/server",
+    
+    "dep:web",
+    "web/server",
+    "dep:storage_core",
+    #"dep:api",
+    #"api/server",
+    "dep:entity",
+    "dep:migration",
+
+    "dep:axum",
+    "dep:tokio",
+    "dep:tokio-util",
+    "dep:clap",
+    "dep:el_std",
+    "dep:sea-orm"
+]
+web = ["dioxus/web", "dep:web", "web/web"]
+desktop = ["dioxus/desktop", "dep:web", "web/web"]
+mobile = ["dioxus/mobile", "dep:web", "web/web"]

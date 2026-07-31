@@ -1,0 +1,20 @@
+[package]
+name = "api"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+dioxus = { workspace = true, features = ["fullstack"] }
+
+# server only (internal)
+storage_core = { workspace = true, optional = true }
+# server only (external)
+axum-client-ip = { workspace = true, optional = true }
+
+[features]
+server = [
+    "dioxus/server",
+
+    "dep:storage_core",
+    "dep:axum-client-ip",
+]

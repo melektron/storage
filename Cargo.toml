@@ -1,0 +1,54 @@
+[workspace]
+resolver = "3"
+members = [
+    # shared
+    "packages/app", # dioxus application entrypoint
+    "packages/api",
+    
+    # frontend
+    "packages/frontend/web",
+    "packages/frontend/ui",
+    
+    # backend
+    "packages/backend/storage_core",
+    "packages/backend/entity",
+    "packages/backend/migration", 
+]
+
+
+[workspace.dependencies]
+# utilities
+anyhow = { version = "1.0.103" }
+log = { version = "0.4.33" }
+tokio = { version = "1.52.3" }
+tokio-util = { version = "0.7.18" }
+futures = { version = "0.3.32" }
+
+# cli
+shell-words = { version = "1.1.1" }
+clap = { version = "4.6.1" }
+
+# web
+dioxus = { version = "0.7.1" }
+dioxus-cli-config = { version = "*" }
+axum = { version = "0.8.9" }
+axum-client-ip = "1.3.1"
+axum-reverse-proxy = { version = "1.3.0", default-features = false }
+tower-http = { version = "0.6.8" }
+
+# db
+sea-orm = { version = "2.0.0" }
+sea-orm-migration ={ version = "2.0.0" }
+
+# local libraries
+el_std = { version = "0.2.0", path = "libs/el_std_rs/el_std" }
+
+# subsystem crates
+api = { path = "packages/api" }
+
+web = { path = "packages/frontend/web" }
+ui = { path = "packages/frontend/ui" }
+
+storage_core = { path = "packages/backend/storage_core" }
+entity = { path = "packages/backend/entity" }
+migration = { path = "packages/backend/migration" }
