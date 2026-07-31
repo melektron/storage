@@ -15,9 +15,10 @@ web = { workspace = true, optional = true }
 # server only
 storage_core = { workspace = true, optional = true }
 # this is indirectly depended upon through web -> ui -> api
+# this additional direct dependency helps with reloading changes
 # note: it's very important to pass the "server" feature flag all the way to API.
 # otherwise the server functions won't get compiled on the server and lead to 404s
-#api = { workspace = true, optional = true }
+api = { workspace = true, optional = true }
 entity = { workspace = true, optional = true }
 migration = { workspace = true, optional = true }
 axum = { workspace = true, optional = true }
@@ -37,8 +38,8 @@ server = [
     "dep:web",
     "web/server",
     "dep:storage_core",
-    #"dep:api",
-    #"api/server",
+    "dep:api",
+    "api/server",
     "dep:entity",
     "dep:migration",
 

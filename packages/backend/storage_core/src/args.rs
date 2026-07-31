@@ -35,10 +35,14 @@ pub struct Args {
     #[arg(long, default_value = "ConnectInfo")]
     pub ip_source: ClientIpSource,
 
-    /// Address to listen on for HTTP connections
+    /// Address to listen on for HTTP connections.
+    /// If the "IP" environment variable is set,
+    /// it's value is used instead.
     #[arg(long, default_value = "0.0.0.0")]
     pub listen_addr: IpAddr,
-    /// Port to listen on for HTTP connections
+    /// Port to listen on for HTTP connections.
+    /// If the "PORT" environment variable is set,
+    /// it's value is used instead
     #[arg(long, default_value = "1234")]
     pub listen_port: u16,
 

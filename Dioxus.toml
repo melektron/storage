@@ -1,0 +1,63 @@
+# Attention: The documentation provided here: https://dioxuslabs.com/learn/0.7/guides/tools/configure
+# seems to be quite outdated and some of the specified options don't seem to work
+# anymore (or have been renamed). It is also missing a lot of options.
+# Generate the correct schema using `dx config schema > schema.json`
+
+[application]
+out_dir = "dist"
+
+# public assets (copied to output unmodified)
+# this is unfortunately relative to the entry point crate,
+# "app" in our case arrrgh.. so it has to be this ugly
+public_dir = "../frontend/ui/public"
+
+# This apparently doesn't work https://github.com/dioxuslabs/dioxus/issues/4567
+# So we need to specify it manually: dx server --package app
+# According to the schema it also doesn't exist anymore...
+sub_package = "app"
+
+[web.app]
+title = "storage"
+#base_path = "ui"
+
+[web.watcher]
+reload_html = true
+#watch_path = []
+index_on_404 = true
+
+[web.resource]
+#style = [
+#   # Include from public_dir.
+#   "./assets/style.css",
+#   # Or some asset from online cdn.
+#   "https://cdn.jsdelivr.net/npm/bootstrap/dist/css/bootstrap.css"
+#]
+#script = [
+#    # Include from asset_dir.
+#    "./public/index.js",
+#    # Or from an online CDN.
+#    "https://cdn.jsdelivr.net/npm/bootstrap/dist/js/bootstrap.js"
+#]
+[web.resource.dev]
+# same as above
+
+#[[web.proxy]]
+# alternative backend for proxying, not relevant for fullstack usually
+#backend = "http://localhost:1234/api"
+
+#[[web.https]]
+# enable https for dev server
+#enabled = true
+#mkcert = true
+#key_path = "/path/to/key"
+#cert_path = "/path/to/cert"
+
+[bundle]
+identifier = "work.elektron.storage"
+publisher = "melektron"
+#icon = []  # see here how to use: https://dioxuslabs.com/learn/0.7/guides/tools/configure#bundle
+#resources = ["path/to/resource"]   # additional resources to bundle (in addition to assets)
+copyright = "Copyright 2026 ELEKTRON"
+category = "Productivity"
+short_description = "Deeply integrated inventory management"
+long_description = "This application provides access to your storage system server. Manage your inventory, deeply integrated with additional hardware systems."
