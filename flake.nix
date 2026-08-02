@@ -18,6 +18,9 @@
         devShells.default = pkgs.mkShell {
           packages = with pkgs; [
             pkg-config # this being in pkg-config apparently isn't enough for rust analyzer
+
+            # python for brandkit pipeline
+            python314
           ];
 
           nativeBuildInputs = with pkgs; [

@@ -50,6 +50,7 @@ impl From<Arc<WebServer>> for ApiContext {
     }
 }
 
+// https://docs.rs/axum/0.8.9/axum/extract/struct.State.html#substates
 impl axum::extract::FromRef<FullstackContext> for ApiContext {
     fn from_ref(state: &FullstackContext) -> Self {
         state
@@ -127,6 +128,7 @@ impl WebServer {
             .context("Binding TCP listener for HTTP")?;
 
         let router = Router::new() // or dioxus::server::router(main_component)
+            // https://docs.rs/crate/dioxus-server/0.7.9
             .serve_dioxus_application(ServeConfig::new(), main_component)
             // add handlers for special subsystems manually
             .route("/health", get(routes::health_check))

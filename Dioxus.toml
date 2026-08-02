@@ -22,7 +22,11 @@ title = "storage"
 
 [web.watcher]
 reload_html = true
-#watch_path = []
+#watch_path = [
+#    "packages/frontend/ui/src",
+#    "packages/frontend/ui/assets",
+#    "packages/frontend/ui/public"
+#]
 index_on_404 = true
 
 [web.resource]

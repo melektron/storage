@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="24"
+   height="24"
+   viewBox="0 0 24 24"
+   version="1.1"
+   id="svg1"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <g
+     id="layer1">
+    <g
+       id="box"
+       style="stroke:none;stroke-opacity:1;fill:none;stroke-width:2;stroke-dasharray:none;stroke-linejoin:round;stroke-linecap:round">
+      <path
+         d="m 1,8 v 8 l 11,7 11,-7 V 8 L 12,1 Z"
+         id="box1"
+         style="stroke:#000000;stroke-opacity:1;fill:none;stroke-width:2;stroke-dasharray:none;stroke-linejoin:round;stroke-linecap:round" />
+      <path
+         d="M 1,8 12,15 23,8 V 8"
+         id="box2"
+         style="stroke:#000000;stroke-opacity:1;fill:none;stroke-width:2;stroke-dasharray:none;stroke-linejoin:round;stroke-linecap:round" />
+      <path
+         d="m 12,15 v 8"
+         id="box3"
+         style="stroke:#000000;stroke-opacity:1;fill:none;stroke-width:2;stroke-dasharray:none;stroke-linejoin:round;stroke-linecap:round" />
+    </g>
+    <g
+       id="codelines"
+       style="stroke:none;stroke-opacity:1;stroke-linecap:round;stroke-linejoin:round;fill:none">
+      <path
+         d="M 11,4.1818182 6,7.3636364"
+         id="codeline1"
+         style="stroke:#000000;stroke-opacity:1;stroke-linecap:round;stroke-linejoin:round;fill:none" />
+      <path
+         d="M 13,5.4545454 7.9999999,8.6363636"
+         id="codeline2"
+         style="stroke:#000000;stroke-opacity:1;stroke-linecap:round;stroke-linejoin:round;fill:none" />
+      <path
+         d="m 14.5,6.4090909 -5,3.1818182"
+         id="codeline3"
+         style="stroke:#000000;stroke-opacity:1;stroke-linecap:round;stroke-linejoin:round;fill:none" />
+      <path
+         d="m 16.5,7.6818181 -5,3.1818179"
+         id="codeline4"
+         style="stroke:#000000;stroke-opacity:1;stroke-linecap:round;stroke-linejoin:round;fill:none" />
+      <path
+         d="M 18,8.6363636 13,11.818182"
+         id="codeline5"
+         style="stroke:#000000;stroke-opacity:1;stroke-linecap:round;stroke-linejoin:round;fill:none" />
+    </g>
+  </g>
+</svg>

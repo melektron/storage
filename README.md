@@ -40,3 +40,12 @@ In server mode, it initiates all the backend application components imported fro
 The API crate contains server functions and only depends on `storage_core` with the server feature. It is the only way for the frontend to communicate with the backend. This way the `storage_core` crate (and all it's backend-only dependencies) does not need to worry about the separation between backend and frontend, as it is only ever compiled for the backend.
 
 This clear split was chosen because the storage server is more than just the backend of the GUI app, also interfacing with various other components (e.g. custom hardware devices). The GUI is just one (admittedly large and important) component of the greater system.
+
+
+## ToDo
+
+- build with nix 
+  - https://github.com/DioxusLabs/dioxus/discussions/3402
+
+
+
