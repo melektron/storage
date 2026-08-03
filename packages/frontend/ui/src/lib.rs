@@ -81,6 +81,10 @@ pub fn MainComponent() -> Element {
         // global styles
         document::Link { rel: "stylesheet", href: assets::MAIN_CSS }
 
-        Router::<Route> {}
+        //Router::<Route> {}
+        span {
+            //style: "font-style: italic;",
+            "Hello, World"
+        }
     }
 }

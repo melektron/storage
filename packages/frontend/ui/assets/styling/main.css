@@ -1,4 +1,25 @@
 
+@font-face {
+  font-family: "LocalOpenSans";
+  src: url("/fonts/Open_Sans/OpenSans-VariableFont_wdth,wght.ttf") format("truetype");
+}
+@font-face {
+  font-family: "LocalOpenSans";
+  src: url("/fonts/Open_Sans/OpenSans-Italic-VariableFont_wdth,wght.ttf") format("truetype");
+  font-style: italic;
+}
+
+@font-face {
+  font-family: "LocalRobotoMono";
+  src: url("/fonts/Roboto_Mono/RobotoMono-VariableFont_wght.ttf") format("truetype");
+}
+@font-face {
+  font-family: "LocalRobotoMono";
+  src: url("/fonts/Roboto_Mono/RobotoMono-Italic-VariableFont_wght.ttf") format("truetype");
+  font-style: italic;
+}
+
+
 :root {
     /* backgrounds */
     --bg: #0f1115;
@@ -45,8 +66,8 @@
     --input-radius: 0.3rem;
 
     /* fonts */
-    --font-family-content: "Open Sans", sans-serif;
-    --font-family-headings: "Roboto Mono", monospace;
+    --font-family-content: "LocalOpenSans", serif;/*"Open Sans", sans-serif;*/
+    --font-family-headings: "LocalRobotoMono", serif; /*"Roboto Mono", monospace;*/
 }
 
 ::selection {
@@ -72,6 +93,11 @@ body {
     /*color: #222;*/
     background: var(--bg);
     color: var(--text);
+}
+#main {
+    background-color: red;
+    width: 100vw;
+    height: 100vh;
 }
 
 h1, h2, h3, h4, h5, h6 {
