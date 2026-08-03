@@ -67,5 +67,5 @@ server = [
     "dep:sea-orm"
 ]
 web = ["dioxus/web", "web/web"]
-desktop = ["dioxus/desktop", "web/web"]
-mobile = ["dioxus/mobile", "web/web"]
+#desktop = ["dioxus/desktop", "web/web"]
+#mobile = ["dioxus/mobile", "web/web"]

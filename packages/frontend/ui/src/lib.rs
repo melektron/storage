@@ -47,8 +47,38 @@ fn WebNavbar() -> Element {
 #[component]
 pub fn MainComponent() -> Element {
     rsx! {
-        // Global app resources
-        document::Link { rel: "icon", href: assets::FAVICON }
+        // Icons
+        document::Link { rel: "icon", href: assets::FAVICON_ICO }
+        document::Link { rel: "icon", type: "image/svg+xml", href: assets::FAVICON_SVG }
+        document::Link { rel: "icon", type: "image/png", sizes: "32x32", href: assets::FAVICON_32 }
+        document::Link { rel: "icon", type: "image/png", sizes: "192x192", href: assets::FAVICON_192 }
+        document::Link { rel: "icon", type: "image/png", sizes: "512x512", href: assets::FAVICON_512 }
+        document::Link { rel: "apple-touch-icon", id: "apple-touch-icon", href: assets::APPLE_TOUCH_ICON_LIGHT }
+        document::Script { "
+        // adapt apple touch icon depending on user color preference
+        const iconLink = document.getElementById('apple-touch-icon');
+            const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+            
+            function updateAppleIcon(e) {{
+                if (e.matches) {{
+                    // default icon is dark
+                    iconLink.href = '{assets::APPLE_TOUCH_ICON_DARK}';
+                }} else {{
+                    iconLink.href = '{assets::APPLE_TOUCH_ICON_LIGHT}';
+                }}
+            }}
+            
+            // initial check
+            updateAppleIcon(darkModeMediaQuery);
+            // listen for changes
+            darkModeMediaQuery.addEventListener('change', updateAppleIcon);
+        " }
+
+        // PWA metadata
+        document::Meta { name: "viewport", content: "width=device-width, initial-scale=1" }
+        document::Link { rel: "manifest", href: assets::PWA_WEBMANIFEST }
+
+        // global styles
         document::Link { rel: "stylesheet", href: assets::MAIN_CSS }
 
         Router::<Route> {}

@@ -19,5 +19,14 @@ use dioxus::prelude::*;
 
 pub const LOGO_COLORLESS_SVG: &str = include_str!("../assets/logo/storage_logo_colorless_base.inkscape.svg");
 
-pub const FAVICON: Asset = asset!("/assets/favicon.ico");
+pub const FAVICON_ICO: Asset = asset!("/assets/logo/icon/favicon.ico");
+pub const FAVICON_SVG: Asset = asset!("/assets/logo/icon/favicon.svg");
+pub const FAVICON_32: Asset = asset!("/assets/logo/icon/favicon-32.png");
+pub const FAVICON_192: Asset = asset!("/assets/logo/icon/favicon-192.png");
+pub const FAVICON_512: Asset = asset!("/assets/logo/icon/favicon-512.png");
+pub const APPLE_TOUCH_ICON_DARK: Asset = asset!("/assets/logo/icon/apple-touch-icon-dark.png");
+pub const APPLE_TOUCH_ICON_LIGHT: Asset = asset!("/assets/logo/icon/apple-touch-icon-light.png");
+
+pub const PWA_WEBMANIFEST: Asset = asset!("/assets/site.webmanifest");
+
 pub const MAIN_CSS: Asset = asset!("/assets/styling/main.css");

@@ -11,9 +11,9 @@
     --text-inverted: #111;
 
     /* accent */
-    --accent: #ff7a22;
-    --accent-hover: #ff9a55;
-    --accent-soft: rgba(255, 139, 61, 0.249);
+    --accent: #6ca000;
+    --accent-hover: #8cb142;
+    --accent-soft: #6ba0003d;
 
     /* borders */
     --border: rgba(255, 255, 255, 0.08);

@@ -13,7 +13,7 @@ if __name__ == "__main__":
     base_collection = inkmark.prepare(
         __file__,
         "storage_logo",
-        input_file="storage_logo.inkscape.svg"
+        input_file="storage_logo_v2.inkscape.svg"
     )
 
     # full color version
@@ -46,11 +46,14 @@ if __name__ == "__main__":
         # convert green lines to filled path so they can be
         # recolored using "fill" (independently from box lines)
         "select-all",
-        "select-by-id:codeline1",
-        "select-by-id:codeline2",
-        "select-by-id:codeline3",
-        "select-by-id:codeline4",
-        "select-by-id:codeline5",
+        "select-by-id:code1",
+        "select-by-id:code2",
+        "select-by-id:code3",
+        "select-by-id:code4",
+        "select-by-id:code5",
+        "select-by-id:code6",
+        "select-by-id:code7",
+        "select-by-id:code8",
         "object-stroke-to-path",
         f"export-filename:{colorless.input_file}",
         "export-do",

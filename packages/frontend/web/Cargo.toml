@@ -9,6 +9,6 @@ dioxus = { workspace = true, features = ["router", "fullstack"] }
 ui = { workspace = true }
 
 [features]
-default = ["web"]
+default = []
 web = ["dioxus/web"]
 server = ["dioxus/server", "ui/server"]
