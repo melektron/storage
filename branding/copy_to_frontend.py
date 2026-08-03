@@ -29,10 +29,10 @@ if __name__ == "__main__":
     (generated / "color" / "apple-touch-icon.png").copy_into( ui / "public")
     (generated / "color" / "favicon.ico").copy_into( ui / "public")
     # these are for webmanifest, which we can't easily generate so we can't use assets there
-    (generated / "color" / "storage_logo_color_0128.png").copy(ui / "public" / "icon-128.svg")
-    (generated / "color" / "storage_logo_color_0192.png").copy(ui / "public" / "icon-192.svg")
-    (generated / "color" / "storage_logo_color_0256.png").copy(ui / "public" / "icon-256.svg")
-    (generated / "color" / "storage_logo_color_0512.png").copy(ui / "public" / "icon-512.svg")
-    (generated / "color" / "storage_logo_color_1024.png").copy(ui / "public" / "icon-1024.svg")
+    (generated / "color" / "storage_logo_color_0128.png").copy(ui / "public" / "icon-128.png")
+    (generated / "color" / "storage_logo_color_0192.png").copy(ui / "public" / "icon-192.png")
+    (generated / "color" / "storage_logo_color_0256.png").copy(ui / "public" / "icon-256.png")
+    (generated / "color" / "storage_logo_color_0512.png").copy(ui / "public" / "icon-512.png")
+    (generated / "color" / "storage_logo_color_1024.png").copy(ui / "public" / "icon-1024.png")
     (generated / "color" / "storage_logo_color.svg").copy(ui / "public" / "icon.svg")
 
