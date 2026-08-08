@@ -22,8 +22,14 @@ pub fn Home() -> Element {
         document::Link { rel: "stylesheet", href: HOME_CSS }
 
         // TODO: nextup try to get recolorable logo working and then properly include fonts and get main CSS working
-        div { dangerous_inner_html: crate::assets::LOGO_COLORLESS_SVG }
+        //div { dangerous_inner_html: crate::assets::LOGO_COLORLESS_SVG }
+        
 
+        Echo {}
+        Echo {}
+        Echo {}
+        Echo {}
+        Echo {}
         Echo {}
     }
 }
@@ -35,6 +41,7 @@ pub fn Echo() -> Element {
 
     rsx! {
         div { id: "echo",
+            "test"
             h4 {
                 Icon { icon: ld::LdEar }
                 "ServerFn Echo"

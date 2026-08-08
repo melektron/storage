@@ -29,4 +29,5 @@ pub const APPLE_TOUCH_ICON_LIGHT: Asset = asset!("/assets/logo/icon/apple-touch-
 
 pub const PWA_WEBMANIFEST: Asset = asset!("/assets/site.webmanifest");
 
+pub const BASE_CSS: Asset = asset!("/assets/styling/base.css");
 pub const MAIN_CSS: Asset = asset!("/assets/styling/main.css");

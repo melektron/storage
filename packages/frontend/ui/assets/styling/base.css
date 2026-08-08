@@ -1,0 +1,306 @@
+/*
+ELEKTRON © 2026 - now
+Written by melektron
+www.elektron.work
+04.08.26, 15:23
+
+Base styling of elements and page behavior
+*/
+
+@font-face {
+  font-family: "LocalOpenSans";
+  src: url("/fonts/Open_Sans/OpenSans-VariableFont_wdth,wght.ttf") format("truetype");
+}
+@font-face {
+  font-family: "LocalOpenSans";
+  src: url("/fonts/Open_Sans/OpenSans-Italic-VariableFont_wdth,wght.ttf") format("truetype");
+  font-style: italic;
+}
+
+@font-face {
+  font-family: "LocalRobotoMono";
+  src: url("/fonts/Roboto_Mono/RobotoMono-VariableFont_wght.ttf") format("truetype");
+}
+@font-face {
+  font-family: "LocalRobotoMono";
+  src: url("/fonts/Roboto_Mono/RobotoMono-Italic-VariableFont_wght.ttf") format("truetype");
+  font-style: italic;
+}
+
+
+:root {
+    /* backgrounds */
+    --bg: #0f1115;
+    --surface: #151922;
+    --surface-2: #1c2230;
+    --surface-3: #232a3a;       /* NEW: elevated panels, popovers, cards-on-cards */
+    
+    /* interactive grays (buttons, hover/active states on non-accent elements) */
+    --surface-hover: #2a3244;   /* NEW: hover bg for buttons, menu/list items */
+    --surface-active: #313b52;  /* NEW: pressed/active bg */
+    --border: rgba(255, 255, 255, 0.08);
+    --border-hover: rgba(255, 255, 255, 0.16); /* NEW: lighter border on hover/focus */
+    
+    /* text */
+    --text: #e6e6e6;
+    --muted: #a7b0c0;
+    --text-inverted: #111;
+    
+    /* TODO: adjust logo to match new accent color */
+    --accent: #78b007;
+    --accent-hover: #a1cb4d;
+    --accent-active: #578103;   /* NEW: pressed state, was missing */
+    --accent-soft: #78b0073d;
+    --accent-bg: #1c2211;       /* NEW: dark olive-tinted bg, same pattern as
+                                    the status colors below — for badges/banners
+                                    instead of relying on --accent-soft alpha,
+                                    which turns muddy over the blue surfaces */
+    --accent-border: #50602e;   /* NEW: pairs with --accent-bg */
+    
+    /* status colors */
+    /* neutral */
+    --notice: #b5bfd1;
+    --notice-bg: #1a202b;
+    --notice-border: #394355;
+    /* info */
+    --info: #68b7ff;
+    --info-bg: #132130;
+    --info-border: #284866;
+    /* success */
+    --success: #5fcf8f;
+    --success-bg: #14261c;
+    --success-border: #2e5a42;
+    /* warning — hue nudged from 41° to 32° (gold → amber) so it doesn't
+        sit so close to the olive accent's 80° hue */
+    --warning: #f0ab5c;
+    --warning-bg: #2b1f12;
+    --warning-border: #5e4222;
+    /* error */
+    --error: #e57373;
+    --error-bg: #2b1717;
+    --error-border: #633030;
+
+
+    /* sizes */
+    /* 4 pixel base grid (like Obsidian) */
+    --size-1:  4px;
+    --size-2:  8px;
+    --size-3:  12px;
+    --size-4:  16px;
+    --size-5:  20px;
+    --size-6:  24px;
+    --size-8:  32px;
+    --size-9:  36px;
+    --size-12: 48px;
+    --size-16: 64px;
+    --size-18: 72px;
+
+    --size-fine-1: 2px;
+    --size-fine-2: 4px;
+    --size-fine-3: 6px;
+
+    /* radio */
+    --radius-s:  var(--size-1);
+    --radius-m:  var(--size-2);
+    --radius-l:  var(--size-3);
+    --radius-xl: var(--size-4);
+
+    /* icon dimensions */
+    /* --icon-xs: 14px; */
+    --icon-s:  16px;
+    --icon-m:  20px;
+    /* --icon-l:  24px; */
+    --icon-xl: 32px;
+    /*--icon-xs-stroke-width: 2px;
+    --icon-s-stroke-width:  2px;
+    --icon-m-stroke-width:  1.75px;
+    --icon-l-stroke-width:  1.75px;
+    --icon-xl-stroke-width: 1.25px;*/
+
+    /* z layers slightly adapted from obsidian */
+    --layer-cover:        5;
+    --layer-overlay:      10;
+    --layer-status-bar:   15;
+    --layer-popover:      30;
+    --layer-slides:       45;
+    --layer-modal:        50;
+    --layer-notice:       60;
+    --layer-menu:         65;
+    --layer-tooltip:      70;
+    --layer-dragged-item: 80;
+
+    /* fonts */
+    --font-family-default: "LocalOpenSans", serif;/*"Open Sans", sans-serif;*/
+    --font-family-mono: "LocalRobotoMono", serif; /*"Roboto Mono", monospace;*/
+
+    /* Safe areas */
+    --safe-top: env(safe-area-inset-top);
+    --safe-right: env(safe-area-inset-right);
+    --safe-bottom: env(safe-area-inset-bottom);
+    --safe-left: env(safe-area-inset-left);
+}
+
+::selection {
+    background: var(--accent-soft);
+    color: var(--text);
+}
+
+
+*,
+*::before,
+*::after {
+    /* predictable box sizing */
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    
+    width: 100%;
+    max-width: 100%;
+    /*
+    No scrolling, even on mobile iOS https://stackoverflow.com/a/59358617
+    According to https://gist.github.com/fozzedout/5e77925381991a9570151550992baf14, we need to use
+    100vh here, and although it reports the correct height, the top
+    unsafe area with notch/dynamic island still isn't covered in portrait orientation,
+    even with viewport-fit=cover. However 100% seems to work correctly, covering everything, 
+    including the unsafe area in landscape mode.
+    Update: It seems it does work, but the PWA requires a reinstall before viewport-fit is honored.
+    */
+    height: 100vh;
+    max-height: 100vh;
+    overflow: hidden;
+    /* prevent zooming */
+    /* touch-action: none; */
+}
+
+html {
+    font-size: 16px;
+
+    /* Maybe this is also needed for no scrolling:
+    position: static;*/
+
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: var(--font-family-default);
+    line-height: 1.4;
+    background: var(--bg);
+    color: var(--text);
+    
+    border: 2px solid pink;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+figure,
+blockquote {
+    margin: 0;
+}
+
+pre,
+code,
+kbd,
+samp {
+    font-family: var(--font-mono);
+}
+
+input,
+textarea,
+select,
+button {
+    /* Ensure editable text is large enough, so iOS doesn't zoom in on it */
+    font: inherit;
+    font-size: max(16px, 1rem);
+}
+
+button,
+input,
+label,
+select,
+textarea,
+a {
+    touch-action: manipulation;
+}
+
+/* Remove iOS tap highlight (*/
+a,
+button,
+input,
+textarea,
+select {
+    -webkit-tap-highlight-color: transparent;
+    /* TODO: This prevents the long press actions on links. maybe we only want that in the navbar? */
+    -webkit-touch-callout: none;
+}
+
+a {
+    color: var(--accent);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+}
+a:hover {
+    color: var(--accent-hover);
+    border-bottom: 1px solid var(--accent);
+}
+
+ul,
+ol {
+    margin: 0;
+    padding: 0;
+}
+
+/* TODO: implement lists and maybe rework this */
+ul[role="list"],
+ol[role="list"] {
+    list-style: none;
+}
+
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+
+.icon {
+    display: block;
+}
+
+.icon-s {
+    width: var(--icon-s);
+    height: var(--icon-s);
+}
+.icon-m {
+    width: var(--icon-m);
+    height: var(--icon-m);
+}
+.icon-xl {
+    width: var(--icon-xl);
+    height: var(--icon-xl);
+}
+
+
+
+
+/* respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}

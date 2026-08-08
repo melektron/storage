@@ -20,6 +20,16 @@ pub fn Blog(id: i32) -> Element {
             Link { to: Route::Blog { id: id - 1 }, "Previous" }
             span { " <---> " }
             Link { to: Route::Blog { id: id + 1 }, "Next" }
+
+            p {
+                "Haptic trigger:",
+                div {
+                    width: "50px",
+                    height: "50px",
+                    "onclick": "triggerHaptic()",
+                    "Click"
+                }
+            }
         }
     }
 }

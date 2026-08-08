@@ -13,9 +13,10 @@ www.elektron.work
 use dioxus::prelude::*;
 
 pub mod assets;
+pub mod components;
 
-mod navbar;
-use navbar::Navbar;
+mod layout;
+use layout::MainLayout;
 
 mod views;
 use views::{Blog, Home};
@@ -23,25 +24,11 @@ use views::{Blog, Home};
 #[derive(Debug, Clone, Routable, PartialEq)]
 #[rustfmt::skip]
 enum Route {
-    #[layout(WebNavbar)]
+    #[layout(MainLayout)]
     #[route("/")]
     Home {},
     #[route("/blog/:id")]
     Blog { id: i32 },
-}
-
-/// A web-specific Router around the shared `Navbar` component
-/// which allows us to use the web-specific `Route` enum.
-#[component]
-fn WebNavbar() -> Element {
-    rsx! {
-        Navbar {
-            Link { to: Route::Home {}, "Home" }
-            Link { to: Route::Blog { id: 1 }, "Blog" }
-        }
-
-        Outlet::<Route> {}
-    }
 }
 
 #[component]
@@ -75,16 +62,21 @@ pub fn MainComponent() -> Element {
         " }
 
         // PWA metadata
-        document::Meta { name: "viewport", content: "width=device-width, initial-scale=1" }
+        // https://gist.github.com/fozzedout/5e77925381991a9570151550992baf14
+        // Note: Updates to some of these don't apply in installed PWA, app must be reinstalled.
+        document::Meta { name: "viewport", content: "width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content" }
+        document::Meta { name: "apple-mobile-web-app-capable", content: "yes" }
+        document::Meta { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" }
         document::Link { rel: "manifest", href: assets::PWA_WEBMANIFEST }
 
         // global styles
+        document::Link { rel: "stylesheet", href: assets::BASE_CSS }
         document::Link { rel: "stylesheet", href: assets::MAIN_CSS }
 
-        //Router::<Route> {}
-        span {
-            //style: "font-style: italic;",
-            "Hello, World"
-        }
+        Router::<Route> {}
+        //span {
+        //    //style: "font-style: italic;",
+        //    "Hello, World"
+        //}
     }
 }

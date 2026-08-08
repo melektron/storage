@@ -10,3 +10,5 @@ www.elektron.work
 //! We use our own components to enable more customizations.
 //! Some of the provided components may however be inspired by
 //! or use parts of the code from dioxus-components.
+
+pub mod icon;
