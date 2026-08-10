@@ -27,7 +27,13 @@ pub const FAVICON_512: Asset = asset!("/assets/logo/icon/favicon-512.png");
 pub const APPLE_TOUCH_ICON_DARK: Asset = asset!("/assets/logo/icon/apple-touch-icon-dark.png");
 pub const APPLE_TOUCH_ICON_LIGHT: Asset = asset!("/assets/logo/icon/apple-touch-icon-light.png");
 
+/// Note: This doesn't currently use the SVG icon as specifying one causes chromium to fail to load
+/// the icon, and mobile chromium thus not showing you the install option for the app. This seems to be a bug,
+/// although the below mentioned one should already have been fixed a while ago:
+/// https://issues.chromium.org/issues/40925759
+/// https://chromium-review.googlesource.com/c/chromium/src/+/4544539
 pub const PWA_WEBMANIFEST: Asset = asset!("/assets/site.webmanifest");
+pub const PWA_SERVICE_WORKER: Asset = asset!("/assets/scripts/service_worker.js");
 
 pub const BASE_CSS: Asset = asset!("/assets/styling/base.css");
 pub const MAIN_CSS: Asset = asset!("/assets/styling/main.css");

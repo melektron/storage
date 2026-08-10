@@ -1,5 +1,8 @@
 mod home;
 pub use home::Home;
 
-mod blog;
-pub use blog::Blog;
+mod parts;
+pub use parts::Parts;
+
+mod stock;
+pub use stock::Stock;

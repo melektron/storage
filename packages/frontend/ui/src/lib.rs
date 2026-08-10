@@ -19,16 +19,38 @@ mod layout;
 use layout::MainLayout;
 
 mod views;
-use views::{Blog, Home};
+use views::{Home, Parts, Stock};
+
+#[component]
+fn PageNotFound(route: Vec<String>) -> Element {
+    let route_string = route.join("/");
+    rsx! {
+        "wooops, {route_string} does not exist :("
+    }
+}
 
 #[derive(Debug, Clone, Routable, PartialEq)]
 #[rustfmt::skip]
 enum Route {
     #[layout(MainLayout)]
+    
     #[route("/")]
     Home {},
-    #[route("/blog/:id")]
-    Blog { id: i32 },
+    #[nest("/part")]
+        #[route("/:id")]
+        Parts { id: i32 },
+    #[end_nest]
+
+    #[nest("/stock")]
+        #[route("/")]
+        Stock {},
+    #[end_nest]
+
+    // Finally, we need to handle the 404 page
+    #[route("/:..route")]
+    PageNotFound {
+        route: Vec<String>,
+    }
 }
 
 #[component]
@@ -68,15 +90,20 @@ pub fn MainComponent() -> Element {
         document::Meta { name: "apple-mobile-web-app-capable", content: "yes" }
         document::Meta { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" }
         document::Link { rel: "manifest", href: assets::PWA_WEBMANIFEST }
+        document::Script { "
+            if ('serviceWorker' in navigator) {{
+                window.addEventListener('load', () => {{
+                navigator.serviceWorker.register('{assets::PWA_SERVICE_WORKER}')
+                    .then(reg => console.log('PWA Service Worker registered!', reg))
+                    .catch(err => console.error('Registration failed:', err));
+                }});
+            }}
+        " }
 
         // global styles
         document::Link { rel: "stylesheet", href: assets::BASE_CSS }
         document::Link { rel: "stylesheet", href: assets::MAIN_CSS }
 
         Router::<Route> {}
-        //span {
-        //    //style: "font-style: italic;",
-        //    "Hello, World"
-        //}
     }
 }

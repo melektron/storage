@@ -1,12 +1,12 @@
 use crate::Route;
 use dioxus::prelude::*;
 
-const BLOG_CSS: Asset = asset!("/assets/blog.css");
+const PARTS_CSS: Asset = asset!("./parts.css");
 
 #[component]
-pub fn Blog(id: i32) -> Element {
+pub fn Parts(id: i32) -> Element {
     rsx! {
-        document::Link { rel: "stylesheet", href: BLOG_CSS }
+        document::Link { rel: "stylesheet", href: PARTS_CSS }
 
         div { id: "blog",
 
@@ -17,9 +17,9 @@ pub fn Blog(id: i32) -> Element {
             }
 
             // Navigation links
-            Link { to: Route::Blog { id: id - 1 }, "Previous" }
+            Link { to: Route::Parts { id: id - 1 }, "Previous" }
             span { " <---> " }
-            Link { to: Route::Blog { id: id + 1 }, "Next" }
+            Link { to: Route::Parts { id: id + 1 }, "Next" }
 
             p {
                 "Haptic trigger:",

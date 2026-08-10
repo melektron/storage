@@ -30,55 +30,54 @@ Base styling of elements and page behavior
 
 :root {
     /* backgrounds */
-    --bg: #0f1115;
-    --surface: #151922;
-    --surface-2: #1c2230;
-    --surface-3: #232a3a;       /* NEW: elevated panels, popovers, cards-on-cards */
-    
+    --bg:               oklch(17% 0.01 265);
+    --surface:          oklch(21% 0.02 265);
+    --surface-2:        oklch(25% 0.03 265);
+    --surface-3:        oklch(29% 0.03 265);       /* NEW: elevated panels, popovers, cards-on-cards */
     /* interactive grays (buttons, hover/active states on non-accent elements) */
-    --surface-hover: #2a3244;   /* NEW: hover bg for buttons, menu/list items */
-    --surface-active: #313b52;  /* NEW: pressed/active bg */
-    --border: rgba(255, 255, 255, 0.08);
-    --border-hover: rgba(255, 255, 255, 0.16); /* NEW: lighter border on hover/focus */
+    --surface-hover:    oklch(31% 0.0342 265.9);   /* NEW: hover bg for buttons, menu/list items */
+    --surface-active:   oklch(35% 0.0425 266.12);  /* NEW: pressed/active bg */
+
+    --border:           rgba(255 255 255 / 0.08);
+    --border-hover:     rgba(255 255 255 / 0.16); /* NEW: lighter border on hover/focus */
     
     /* text */
-    --text: #e6e6e6;
-    --muted: #a7b0c0;
-    --text-inverted: #111;
+    --text:             oklch(93% 0 0);
+    --muted:            oklch(75% 0.02 265);
+    --text-inverted:    oklch(18% 0 0);
     
     /* TODO: adjust logo to match new accent color */
-    --accent: #78b007;
-    --accent-hover: #a1cb4d;
-    --accent-active: #578103;   /* NEW: pressed state, was missing */
-    --accent-soft: #78b0073d;
-    --accent-bg: #1c2211;       /* NEW: dark olive-tinted bg, same pattern as
-                                    the status colors below — for badges/banners
-                                    instead of relying on --accent-soft alpha,
-                                    which turns muddy over the blue surfaces */
-    --accent-border: #50602e;   /* NEW: pairs with --accent-bg */
+    --accent:           oklch(69% 0.18 128);
+    --accent-soft:      oklch(69% 0.18 128 / 23.9%);
+    --accent-hover:     oklch(78% 0.16 128);
+    --accent-active:    oklch(55% 0.15 128);   /* NEW: pressed state, was missing */
+    --accent-bg:        oklch(24% 0.03 124);  /* NEW: dark olive-tinted bg, same pattern as
+                                                        the status colors below — for badges/banners
+                                                        instead of relying on --accent-soft alpha,
+                                                        which turns muddy over the blue surfaces */
+    --accent-border:    oklch(46% 0.07 124);   /* NEW: pairs with --accent-bg */
     
     /* status colors */
     /* neutral */
-    --notice: #b5bfd1;
-    --notice-bg: #1a202b;
-    --notice-border: #394355;
+    --notice:           oklch(80% 0.03 262);
+    --notice-bg:        oklch(25% 0.02 262);
+    --notice-border:    oklch(40% 0.03 262);
     /* info */
-    --info: #68b7ff;
-    --info-bg: #132130;
-    --info-border: #284866;
+    --info:             oklch(75% 0.13 248);
+    --info-bg:          oklch(25% 0.03 248);
+    --info-border:      oklch(40% 0.06 248);
     /* success */
-    --success: #5fcf8f;
-    --success-bg: #14261c;
-    --success-border: #2e5a42;
-    /* warning — hue nudged from 41° to 32° (gold → amber) so it doesn't
-        sit so close to the olive accent's 80° hue */
-    --warning: #f0ab5c;
-    --warning-bg: #2b1f12;
-    --warning-border: #5e4222;
+    --success:          oklch(75% 0.13 158);
+    --success-bg:       oklch(25% 0.03 158);
+    --success-border:   oklch(40% 0.06 158);
+    /* warning */
+    --warning:          oklch(79% 0.13 68);
+    --warning-bg:       oklch(25% 0.03 68);
+    --warning-border:   oklch(40% 0.06 68);
     /* error */
-    --error: #e57373;
-    --error-bg: #2b1717;
-    --error-border: #633030;
+    --error:            oklch(69% 0.14 20);
+    --error-bg:         oklch(23% 0.03 20);
+    --error-border:     oklch(38% 0.07 20);
 
 
     /* sizes */
@@ -191,7 +190,7 @@ body {
     background: var(--bg);
     color: var(--text);
     
-    border: 2px solid pink;
+    /*border: 2px solid pink;*/
 }
 
 h1,

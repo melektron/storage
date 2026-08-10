@@ -1,6 +1,7 @@
 {
   "name": "storage",
   "short_name": "storage",
+  "description": "Elektron Inventory System",
   "start_url": "/",
   "display": "standalone",
   "theme_color": "#6ca000",
@@ -30,11 +31,6 @@
       "src": "/icon-1024.png",
       "sizes": "1024x1024",
       "type": "image/png"
-    },
-    {
-      "src": "/favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml"
     }
   ]
 }
