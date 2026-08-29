@@ -138,7 +138,7 @@ Main page layout
         
         z-index: var(--layer-overlay);
         position: fixed;
-        bottom: max(calc(var(--safe-bottom) - var(--navbar-unsafe-overlap)), 0px);
+        bottom: max(calc(var(--safe-bottom) - var(--navbar-unsafe-overlap)), var(--size-2));
         left: var(--safe-left);
         right: var(--safe-right);
 
@@ -150,7 +150,10 @@ Main page layout
     #navbar-inner {
         flex-direction: row;
 
+        border: 1px solid var(--border);
         border-radius: calc(var(--navbar-height) / 2);
+
+        box-shadow: var(--shadow-s);
     }
 
     #navbar-inner a {

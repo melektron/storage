@@ -12,3 +12,5 @@ www.elektron.work
 //! or use parts of the code from dioxus-components.
 
 pub mod icon;
+
+pub mod camera;
