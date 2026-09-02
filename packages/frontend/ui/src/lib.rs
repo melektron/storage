@@ -19,13 +19,14 @@ mod layout;
 use layout::MainLayout;
 
 mod views;
-use views::{Home, Parts, Stock};
+use views::{Home, Parts, Stock, Settings, User};
 
 #[component]
 fn PageNotFound(route: Vec<String>) -> Element {
     let route_string = route.join("/");
     rsx! {
         "wooops, {route_string} does not exist :("
+        // TODO: make better 404 page
     }
 }
 
@@ -45,6 +46,15 @@ enum Route {
         #[route("/")]
         Stock {},
     #[end_nest]
+    
+    #[nest("/settings")]
+        #[route("/")]
+        Settings {},
+    #[end_nest]
+
+    // This is the user info page that is only used on mobile
+    #[route("/user")]
+    User {},
 
     // Finally, we need to handle the 404 page
     #[route("/:..route")]

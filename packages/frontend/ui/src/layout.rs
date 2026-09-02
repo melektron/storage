@@ -65,22 +65,22 @@ fn NavLink<T: IconShape + Clone + PartialEq + 'static>(
 pub fn MainLayout() -> Element {
     rsx! {
         div {
+            // this layout should only exist once, so we use ID here instead of class
             id: "navbar",
             nav {
                 id: "navbar-inner",
                 NavLink { to: Route::Home {}, icon: ld::LdHome }
                 NavLink { to: Route::Parts { id: 1 }, active: Active::StartsWith("/part"), icon: ld::LdComponent }
                 NavLink { to: Route::Stock {}, active: Active::StartsWith("/stock"), icon: ld::LdBoxes }
-                NavLink { to: Route::Home {}, icon: ld::LdCircleUserRound, class: "nav-end" }
+                NavLink { to: Route::Settings {}, icon: ld::LdSettings, class: "nav-end" }
+                NavLink { to: Route::User {}, icon: ld::LdCircleUserRound }
+                // TODO: Make main menu accessible via command pallet
             }
         }
         
         div {
-            id: "root-view",
-            main {
-                id: "root-view-inner",
-                Outlet::<Route> {}
-            }
+            id: "view-container",
+            Outlet::<Route> {}
         }
     }
 }

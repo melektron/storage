@@ -30,8 +30,11 @@ Main page layout
 
     /* in landscape mode navbar icons are M sized */
     --navbar-icon-size: var(--icon-m);
-    --navbar-padding: var(--size-2);
-    --navbar-item-padding: var(--size-2);
+    --navbar-padding: var(--padding-m);
+    --navbar-item-padding: var(--padding-m);
+
+    /* the following variable is calculated in portrait mode, this is the fallback value for landscape */
+    --safe-bottom-incl-navbar: 0px;
 }
 
 #navbar {
@@ -94,6 +97,11 @@ Main page layout
     height: var(--navbar-icon-size);
 }
 
+#view-container {
+    grid-area: view;
+    overflow: hidden;
+}
+
 /* This is the main scrollable container */
 #root-view {
     grid-area: view;
@@ -128,8 +136,9 @@ Main page layout
         --navbar-icon-size: var(--icon-xl);
         /* new variables for navbar position calculation */
         --navbar-unsafe-overlap: var(--size-3);
-        --navbar-height: calc(var(--navbar-icon-size) + 2*var(--navbar-padding) + 2*var(--navbar-item-padding));
-        --safe-bottom-incl-navbar: calc(var(--safe-bottom) + var(--navbar-height) - var(--navbar-unsafe-overlap) + var(--size-2));
+        --navbar-height: calc(var(--navbar-icon-size) + 2*var(--navbar-padding) + 2*var(--navbar-item-padding) + 4px); /* 4px of border total */
+        --navbar-bottom-spacing: max(calc(var(--safe-bottom) - var(--navbar-unsafe-overlap)), var(--size-2));
+        --safe-bottom-incl-navbar: calc(var(--navbar-bottom-spacing) + var(--navbar-height));
     }
 
     #navbar {
@@ -138,7 +147,7 @@ Main page layout
         
         z-index: var(--layer-overlay);
         position: fixed;
-        bottom: max(calc(var(--safe-bottom) - var(--navbar-unsafe-overlap)), var(--size-2));
+        bottom: var(--navbar-bottom-spacing);
         left: var(--safe-left);
         right: var(--safe-right);
 
@@ -164,12 +173,15 @@ Main page layout
         padding-inline: calc(var(--inner-radius) - var(--size-2));
     }
 
-    #root-view {
+    #view-container {
         /* we gradually fade out content in the unsafe 
         areas at the top and bottom to give the effect that
-        the content is scrolling beneath it */
-        --fade-top: calc(var(--safe-top) + var(--size-2));
-        --fade-bottom: calc(var(--safe-bottom-incl-navbar) + var(--size-2));
+        the content is scrolling beneath it.
+        Views can then use padding to ensure their visible content 
+        doesn't overlap with the fade and any contained UI elements. */
+        --fade-top: calc(var(--safe-top) + min(var(--safe-top), var(--size-2)));
+        --fade-bottom: calc(var(--safe-bottom-incl-navbar) + min(var(--safe-bottom-incl-navbar), var(--size-2)));
+        /* ^ Note: This effectively adds a fixed value only if the calculated base value is not zero */
 
         /* 
         unfortunately there currently is no proper way to gradually blur

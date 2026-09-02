@@ -10,5 +10,5 @@ ui = { workspace = true }
 
 [features]
 default = []
-web = ["dioxus/web"]
+web = ["dioxus/web", "ui/web"]
 server = ["dioxus/server", "ui/server"]

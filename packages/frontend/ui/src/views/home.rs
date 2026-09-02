@@ -14,6 +14,8 @@ use dioxus::prelude::*;
 
 use dioxus_free_icons::{Icon, icons::ld_icons as ld};
 
+use crate::components::sidebar_layout::SidebarLayout;
+
 const HOME_CSS: Asset = asset!("./home.css");
 
 #[component]
@@ -23,14 +25,25 @@ pub fn Home() -> Element {
 
         // TODO: nextup try to get recolorable logo working and then properly include fonts and get main CSS working
         //div { dangerous_inner_html: crate::assets::LOGO_COLORLESS_SVG }
-        
+        SidebarLayout {
+            title: "Home",
+            sidebar: rsx! {
+                "Home Sidebar"
+                for _ in 0..8 {
+                    Echo {}
+                }
+            },
+            main_view: rsx! {
+                "Home main view"
+                Echo {}
+                Echo {}
+                Echo {}
+                Echo {}
+                Echo {}
+                Echo {}
+            }
+        }
 
-        Echo {}
-        Echo {}
-        Echo {}
-        Echo {}
-        Echo {}
-        Echo {}
     }
 }
 

@@ -14,3 +14,5 @@ www.elektron.work
 pub mod icon;
 
 pub mod camera;
+
+pub mod sidebar_layout;

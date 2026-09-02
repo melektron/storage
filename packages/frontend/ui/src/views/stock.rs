@@ -1,3 +1,10 @@
+/*
+ELEKTRON © 2026 - now
+Written by melektron
+www.elektron.work
+29.08.26, 12:45
+*/
+
 use crate::{Route, components::camera::Camera};
 use dioxus::prelude::*;
 

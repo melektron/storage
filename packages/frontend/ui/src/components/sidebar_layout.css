@@ -1,0 +1,96 @@
+/*
+ELEKTRON © 2026 - now
+Written by melektron
+www.elektron.work
+31.08.26, 15:04
+*/
+
+.sbview-container {
+    height: 100%;
+    width: 100%;
+
+    display: grid;
+    grid-template-areas: 
+        "titlebar titlebar titlebar"
+        "sidebar divider main";
+    grid-template-columns: 
+        var(--sidebar-width) 
+        calc(var(--divider-border-size) + 1px) 
+        1fr;
+    grid-template-rows: 3rem 1fr;
+
+    --divider-border-size: var(--padding-m);
+}
+
+.sbview-title-bar {
+    grid-area: titlebar;
+    /*border: 5px solid green;*/
+    border-bottom: 1px solid var(--border);
+}
+.sbview-sidebar {
+    grid-area: sidebar;
+    /*border: 5px solid pink;*/
+}
+.sbview-divider {
+    grid-area: divider;
+    background-color: var(--border);
+    cursor: ew-resize;
+    /* divider border on right serves as enlarged hitbox.
+    The hitbox doesn't extend to the left as this space may
+    be inhabited by the scroll track of the sidebar */
+    border-right: var(--divider-border-size) solid var(--bg);
+    border-bottom: var(--safe-bottom-incl-navbar) solid var(--bg);
+}
+.sbview-divider:active {
+    background: var(--border-hover);
+}
+.sbview-main-container {
+    grid-area: main;
+    /*border: 5px solid lightblue;*/
+}
+
+/* applied to scrollable containers in sbview (sidebar and main) */
+.sbview-scrollable-y {
+    min-height: 0;
+    /* we only allow scrolling in y direction */
+    overflow-y: auto;
+    overflow-x: hidden;
+    /* when end of scroll area is reached, the scroll 
+    shouldn't continue scrolling the parent. 
+    TODO: decide if we actually need this bc it also 
+    prevents the default spring effect in firefox in some
+    situations. */
+    /*overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;*/
+}
+.sbview-sidebar-inner {
+    /* Child components may use this container's dimensions
+    to adjust their layout */
+    /*container-name: sbview-sidebar;
+    container-type: size;*/
+
+    /* TODO: simplify this so the safe areas and such are only considered in actual portrait mode by media query. */
+    padding:
+        calc(var(--safe-top) + var(--padding-m))
+        var(--padding-m)
+        calc(var(--safe-bottom-incl-navbar) + var(--padding-m)) /* bottom always needs additional space to navbar */
+        max(var(--safe-left), var(--padding-m));
+}
+.sbview-main-inner {
+    /* Child components may use this container's dimensions
+    to adjust their layout */
+    /*container-name: sbview-main-container;
+    container-type: size;*/
+
+    padding:
+        calc(var(--safe-top) + var(--padding-m))
+        max(var(--safe-right), var(--padding-m))
+        calc(var(--safe-bottom-incl-navbar) + var(--padding-m)) /* bottom always needs additional space to navbar */
+        0px; /* this is replaced by the divider dragging area */
+}
+
+@media (orientation: portrait) and (max-width: 768px) {
+    /*
+    TODO: adjust layout for mobile (only show one of the panels at a time)
+    */
+}

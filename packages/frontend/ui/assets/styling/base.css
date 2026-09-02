@@ -108,6 +108,10 @@ Base styling of elements and page behavior
     --radius-l:  var(--size-3);
     --radius-xl: var(--size-4);
 
+    --padding-s: var(--size-1);
+    --padding-m: var(--size-2);
+    --padding-l: var(--size-3);
+
     /* icon dimensions */
     /* --icon-xs: 14px; */
     --icon-s:  16px;

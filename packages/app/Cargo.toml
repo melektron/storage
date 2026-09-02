@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 dioxus = { workspace = true, features = ["fullstack"] }
+wasm-bindgen = { workspace = true } # pins wasm-bindgen to nixpkgs version
 anyhow = { workspace = true }
 log = { workspace = true }
 
