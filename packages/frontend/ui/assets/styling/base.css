@@ -40,6 +40,8 @@ Base styling of elements and page behavior
 
     --border:           rgba(255 255 255 / 0.08);
     --border-hover:     rgba(255 255 255 / 0.16); /* NEW: lighter border on hover/focus */
+
+    --scrollbar:        rgba(255 255 255 / 0.5);
     
     /* text */
     --text:             oklch(93% 0 0);
@@ -158,6 +160,10 @@ Base styling of elements and page behavior
 *::after {
     /* predictable box sizing */
     box-sizing: border-box;
+
+    /* transparent scroll track and
+    color-adjusted thumb even on chromium */
+    scrollbar-color: var(--scrollbar) transparent;
 }
 
 html,
