@@ -65,6 +65,7 @@ server = [
     "dep:tokio-util",
     "dep:clap",
     "dep:el_std",
+    "el_std/terminal",
     "dep:sea-orm"
 ]
 web = ["dioxus/web", "web/web"]

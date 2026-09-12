@@ -10,7 +10,7 @@ www.elektron.work
 
 use dioxus::prelude::*;
 use dioxus_free_icons::IconShape;
-use crate::components::icon::{IconM, IconNavbar, ld};
+use crate::components::sized_icon::{IconM, IconNavbar, ld};
 
 use crate::{Route};
 

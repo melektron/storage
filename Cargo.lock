@@ -1931,7 +1931,7 @@ dependencies = [
 
 [[package]]
 name = "el_std"
-version = "0.2.0"
+version = "0.3.1"
 dependencies = [
  "anstyle",
  "anyhow",
@@ -1948,7 +1948,7 @@ dependencies = [
 
 [[package]]
 name = "el_std_macros"
-version = "0.2.0"
+version = "0.3.1"
 dependencies = [
  "quote",
  "syn 2.0.119",
@@ -5301,6 +5301,7 @@ dependencies = [
  "api",
  "dioxus",
  "dioxus-free-icons",
+ "el_std",
  "tracing",
 ]
 

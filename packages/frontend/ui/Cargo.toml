@@ -13,6 +13,9 @@ anyhow = { workspace = true }
 
 api = { workspace = true }
 
+
+el_std = { workspace = true, features = [ "clone" ] }
+
 [features]
 # web tells us that we can use web-sys
 web = [] # do we need dioxus/web here?

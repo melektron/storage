@@ -11,8 +11,12 @@ www.elektron.work
 //! Some of the provided components may however be inspired by
 //! or use parts of the code from dioxus-components.
 
-pub mod icon;
+pub mod dynamic_icon;
+
+pub mod sized_icon;
 
 pub mod camera;
 
 pub mod sidebar_layout;
+
+pub mod actionbar_button;

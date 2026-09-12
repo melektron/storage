@@ -17,7 +17,7 @@ www.elektron.work
         var(--sidebar-width) 
         calc(var(--divider-border-size) + 1px) 
         1fr;
-    grid-template-rows: 3rem 1fr;
+    grid-template-rows: auto 1fr;
 
     --divider-border-size: var(--padding-m);
 }
@@ -26,6 +26,12 @@ www.elektron.work
     grid-area: titlebar;
     /*border: 5px solid green;*/
     border-bottom: 1px solid var(--border);
+    
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: var(--padding-m);
+    gap: var(--padding-m);
 }
 .sbview-sidebar {
     grid-area: sidebar;
@@ -88,6 +94,37 @@ www.elektron.work
         calc(var(--safe-bottom-incl-navbar) + var(--padding-m)) /* bottom always needs additional space to navbar */
         0px; /* this is replaced by the divider dragging area */
 }
+
+/* In only main layout, we hide the sidebar and divider */
+.sbview-layout-only-main.sbview-container {
+    grid-template-areas: 
+        "titlebar"
+        "main";
+    grid-template-columns:
+        1fr;
+}
+.sbview-layout-only-main > .sbview-sidebar,
+.sbview-layout-only-main > .sbview-divider {
+    display: none;
+}
+.sbview-layout-only-main > .sbview-main-container {
+    /* main now needs left padding because divider no longer exists */
+    padding-left: var(--padding-m);
+}
+
+/* In only sidebar layout, we hide the main and divider */
+.sbview-layout-only-sidebar.sbview-container {
+    grid-template-areas: 
+        "titlebar"
+        "sidebar";
+    grid-template-columns:
+        1fr;
+}
+.sbview-layout-only-sidebar > .sbview-main-container,
+.sbview-layout-only-sidebar > .sbview-divider {
+    display: none;
+}
+
 
 @media (orientation: portrait) and (max-width: 768px) {
     /*

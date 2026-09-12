@@ -48,7 +48,7 @@ sea-orm = { version = "2.0.0" }
 sea-orm-migration ={ version = "2.0.0" }
 
 # local libraries
-el_std = { version = "0.2.0", path = "libs/el_std_rs/el_std" }
+el_std = { version = "0.3.0", path = "libs/el_std_rs/el_std" }
 
 # subsystem crates
 api = { path = "packages/api" }

@@ -255,6 +255,27 @@ select {
     -webkit-touch-callout: none;
 }
 
+button {
+    display: block;
+    padding: var(--padding-s) var(--padding-m);
+    
+    background: var(--surface-3);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-m);
+}
+button:hover {
+    background: var(--surface-hover);
+    border-color: var(--border-hover);
+}
+button:active {
+    background: var(--surface-active);
+    border-color: var(--border-hover);
+}
+
+
+
+
 a {
     color: var(--accent);
     text-decoration: none;
@@ -316,4 +337,30 @@ table {
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
     }
+}
+
+
+
+/* =======================
+   Modifier Classes
+   
+   These are combined with other classes or
+   depending on the element type to trigger
+   certain styles. This system heavily leans
+   on how Obsidian does things.
+*/
+
+/* mod-primary */
+
+button.mod-primary {
+    background: var(--accent);
+    border-color: var(--accent-border);
+}
+button.mod-primary:hover {
+    background: var(--accent-hover);
+    border-color: var(--accent-border);
+}
+button.mod-primary:active {
+    background: var(--accent-active);
+    border-color: var(--accent-border);
 }
