@@ -9,18 +9,12 @@ www.elektron.work
 //! It is not used as a "router layout", instead being explicitly
 //! used inside the view components in addition to the router layout
 
-use std::rc::Rc;
-
 use anyhow::anyhow;
-use anyhow::Context;
 use dioxus::prelude::*;
 use dioxus_free_icons::icons::ld_icons as ld;
-use dioxus_free_icons::IconShape;
 
 use crate::components::actionbar_button::ActionbarButton;
 use crate::components::dynamic_icon::DynIconType;
-use crate::components::sized_icon::IconM;
-//use web_sys::wasm_bindgen::JsCast;
 
 const SIDEBAR_LAYOUT_CSS: Asset = asset!("./sidebar_layout.css");
 
@@ -59,7 +53,6 @@ pub fn SidebarLayout(
         Layout::OnlySidebar => &ld::LdPanelLeft,
     };
 
-    // TODO: do we really need clone here? apparently signals implement copy.
     let mut rotate_layout = move |_| {
         tracing::warn!("called rotate");
         let new_layout = match *layout.read() {
@@ -68,6 +61,22 @@ pub fn SidebarLayout(
             Layout::OnlySidebar => Layout::Split,
         };
         layout.set(new_layout);
+    };
+
+    let handle_resize_move = move |evt: Event<PointerData>| {
+        // prevent accidental text selection while dragging
+        evt.prevent_default();
+
+        if let Some(pointer_id) = *dragging_pointer.read() && pointer_id == evt.pointer_id() {
+            let target_pos = (evt.client_coordinates().x - *drag_offset.read()) as u32;
+            sidebar_width.set(std::cmp::max(target_pos, sidebar_min_width));
+        }
+    };
+    let handle_resize_stop = move |evt: Event<PointerData>| {
+        let mut pointer_id = dragging_pointer.write();
+        if pointer_id.is_none() { return }
+        if let Some(id) = *pointer_id && id != evt.pointer_id() { return }
+        *pointer_id = None;
     };
 
     rsx! {
@@ -80,21 +89,14 @@ pub fn SidebarLayout(
             style: "--sidebar-width: {sidebar_width}px; --sidebar-min-width: {sidebar_min_width}px; --main-min-width: {main_min_width}px;",
             "data-layout": layout_attr,
             
-            // We capture move and up events on the the container instead of the
-            // divider because we can't universally implement pointer capture.
-            // This is an adequate (though not perfect) workaround. See below for details.
-            onpointermove: move |evt| {
-                if let Some(pointer_id) = *dragging_pointer.read() && pointer_id == evt.pointer_id() {
-                    let target_pos = (evt.client_coordinates().x - *drag_offset.read()) as u32;
-                    sidebar_width.set(target_pos /*std::cmp::max(target_pos, sidebar_min_width)*/);
-                }
-            },
-            onpointerup: move |evt| {
-                let mut pointer_id = dragging_pointer.write();
-                if pointer_id.is_none() { return }
-                if let Some(id) = *pointer_id && id != evt.pointer_id() { return }
-                *pointer_id = None;
-            },
+            // On native platforms, we capture move and up events on the the 
+            // container instead of the divider because we can't implement pointer capture.
+            // It seems that some browsers sometimes quasi-capture the pointer to the viewport, and 
+            // since the sbview takes up pretty much the entire viewport this is an adequate 
+            // (though not perfect) workaround to pointer capture.
+            // Does have the disadvantage of firing many unnecessary events while not resizing.
+            onpointermove: handle_resize_move,
+            onpointerup: handle_resize_stop,
 
             div {
                 class: "sbview-title-bar",
@@ -130,17 +132,17 @@ pub fn SidebarLayout(
                 ActionbarButton {
                     text: "hi",
                     icon: &ld::LdPanelLeftOpen,
-                    onclick: move |evt| layout.set(Layout::OnlySidebar),
+                    onclick: move |_| layout.set(Layout::OnlySidebar),
                 }
                 ActionbarButton {
                     text: "hi",
                     icon: &ld::LdPanelRightOpen,
-                    onclick: move |evt| layout.set(Layout::OnlyMain),
+                    onclick: move |_| layout.set(Layout::OnlyMain),
                 }
                 ActionbarButton {
                     text: "hi",
                     icon: &ld::LdPanelLeft,
-                    onclick: move |evt| layout.set(Layout::Split),
+                    onclick: move |_| layout.set(Layout::Split),
                 }
             }
 
@@ -158,39 +160,59 @@ pub fn SidebarLayout(
                 class: "sbview-divider",
                 // save element reference for pointer capturing
                 onpointerdown: move |evt| {
-                    // Unfortunately we can't properly implement pointer capture
-                    // in a fullstack app... at least not in a platform agnostic way.
-                    // That's because this code doesn't compile on the server or other 
-                    // native targets.
-                    // TODO: get this working with some feature flags or something...
-                    //let mut inner = move || -> anyhow::Result<()> {
-                    //    let pointer_event = evt
-                    //        .downcast::<web_sys::PointerEvent>()
-                    //        .ok_or(anyhow!("cast failed"))?;
-                    //
-                    //    let target = pointer_event
-                    //        .current_target()
-                    //        .ok_or(anyhow!("no target"))?
-                    //        .dyn_into::<web_sys::Element>()
-                    //        .map_err(|_| anyhow!("element cast failed"))?;
-                    //
-                    //    target
-                    //        .set_pointer_capture(pointer_event.pointer_id())
-                    //        .map_err(|js_err| anyhow!("pointer capture failed: {js_err:?}"))?;
-                    //
-                    //    dragging.set(true);
-                    //
-                    //    tracing::info!("dragstart {}", pointer_event.pointer_id());
-                    //    Ok(())
-                    //};
-                    //
-                    //if let Err(err) = inner() {
-                    //    
-                    //};
-                    dragging_pointer.set(Some(evt.pointer_id()));
-                    // calculate the offset to get new panel width from client coords
-                    drag_offset.set(evt.client_coordinates().x - (*sidebar_width.read() as f64));
+                    // prevent accidental text selection while dragging
+                    evt.prevent_default();
+
+                    // on web, we have access to web_sys and can properly
+                    // capture the pointer. 
+                    #[cfg(feature = "web")]
+                    {
+                        use web_sys::wasm_bindgen::JsCast;
+
+                        let mut inner = move || -> anyhow::Result<()> {
+                            let pointer_event = evt
+                                .downcast::<web_sys::PointerEvent>()
+                                .ok_or(anyhow!("cast failed"))?;
+                        
+                            let target = pointer_event
+                                // must be current target because it seems like dioxus doesn't
+                                // actually attach the event listener to the element we tell it 
+                                // to. Rather it seems to do filtering after the fact.
+                                .target()   
+                                .ok_or(anyhow!("no target"))?
+                                .dyn_into::<web_sys::Element>()
+                                .map_err(|_| anyhow!("element cast failed"))?;
+                            
+                            target
+                                .set_pointer_capture(pointer_event.pointer_id())
+                                .map_err(|js_err| anyhow!("pointer capture failed: {js_err:?}"))?;
+                            
+                            dragging_pointer.set(Some(pointer_event.pointer_id()));
+                            // calculate the offset to get new panel width from client coords
+                            drag_offset.set((pointer_event.client_x() - (*sidebar_width.read() as i32)) as f64);
+                        
+                            Ok(())
+                        };
+                        
+                        if let Err(err) = inner() {
+                            tracing::error!("drag start failed: {:?}", err);
+                        };
+                    }
+                    // Unfortunately we can't easily do pointer capture on
+                    // non-web platforms, because we don't have access to the native
+                    // web_sys data (rendering happens in native code).
+                    #[cfg(not(feature = "web"))]
+                    {
+                        dragging_pointer.set(Some(evt.pointer_id()));
+                        // calculate the offset to get new panel width from client coords
+                        drag_offset.set(evt.client_coordinates().x - (*sidebar_width.read() as f64));
+                    }
                 },
+                // these will be fired only when the pointer is captured
+                // or moving above the divider in order to minimize
+                // unnecessary event handler calls
+                onpointermove: handle_resize_move,
+                onpointerup: handle_resize_stop,
             }
 
             div {

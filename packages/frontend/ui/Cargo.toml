@@ -8,15 +8,19 @@ dioxus = { workspace = true, features = ["router", "fullstack"] }
 #dioxus-primitives = { workspace = true }
 dioxus-free-icons = { workspace = true }
 tracing = { workspace = true }
-#web-sys = { workspace = true }
 anyhow = { workspace = true }
+el_std = { workspace = true, features = [ "clone" ] }
+
+web-sys = { workspace = true, optional = true }
+
 
 api = { workspace = true }
 
 
-el_std = { workspace = true, features = [ "clone" ] }
-
 [features]
 # web tells us that we can use web-sys
-web = [] # do we need dioxus/web here?
+web = [
+    "dep:web-sys"
+    # do we need dioxus/web here?
+]
 server = ["dioxus/server", "api/server"]

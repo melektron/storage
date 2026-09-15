@@ -32,7 +32,7 @@ clap = { version = "4.6.1" }
 # web
 dioxus = { version = "0.7.1" }
 dioxus-cli-config = { version = "*" }
-wasm-bindgen = { version = "=0.2.126" } # not SemVer! force to same version used by nixpkgs
+wasm-bindgen = { version = "=0.2.127" } # not SemVer! force to same version used by nixpkgs
 web-sys = { version = "0.3.104" }
 axum = { version = "0.8.9" }
 axum-client-ip = "1.3.1"

@@ -32,7 +32,7 @@
             # necessary for web build
             lld
             binaryen  # includes wasm-opt
-            wasm-bindgen-cli_0_2_126
+            wasm-bindgen-cli_0_2_127
             
             # additionally necessary for desktop build
             pkg-config
