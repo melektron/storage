@@ -43,12 +43,14 @@ pub fn SidebarLayout(
     
     // TODO: Somehow persist these across sessions or at least navigations (local storage)
     let mut layout = use_signal(|| Layout::Split);
+    let sidebar_min_width = 200u32;
+    let main_min_width = 200u32;
     let mut sidebar_width = use_signal(|| 200 as u32); // sidebar is 200px by default
 
-    let layout_class = match *layout.read() {
-        Layout::Split => "sbview-layout-split",
-        Layout::OnlyMain => "sbview-layout-only-main",
-        Layout::OnlySidebar => "sbview-layout-only-sidebar",
+    let layout_attr = match *layout.read() {
+        Layout::Split => "split",
+        Layout::OnlyMain => "only-main",
+        Layout::OnlySidebar => "only-sidebar",
     };
 
     let layout_button_icon: DynIconType = match *layout.read() {
@@ -57,10 +59,7 @@ pub fn SidebarLayout(
         Layout::OnlySidebar => &ld::LdPanelLeft,
     };
 
-    let a: &dyn IconShape = &ld::LdAArrowDown;
-    let b = a.clone();
-
-    // TODO: do we really need clone here? apparently singals iplement copy.
+    // TODO: do we really need clone here? apparently signals implement copy.
     let mut rotate_layout = move |_| {
         tracing::warn!("called rotate");
         let new_layout = match *layout.read() {
@@ -76,15 +75,18 @@ pub fn SidebarLayout(
         document::Title { "test" }
 
         div {
-            class: "sbview-container {layout_class}",
-            style: "--sidebar-width: {sidebar_width}px",
+            class: "sbview",
+            class: if let Some(_) = *dragging_pointer.read() { "mod-is-resizing" },
+            style: "--sidebar-width: {sidebar_width}px; --sidebar-min-width: {sidebar_min_width}px; --main-min-width: {main_min_width}px;",
+            "data-layout": layout_attr,
             
             // We capture move and up events on the the container instead of the
             // divider because we can't universally implement pointer capture.
             // This is an adequate (though not perfect) workaround. See below for details.
             onpointermove: move |evt| {
                 if let Some(pointer_id) = *dragging_pointer.read() && pointer_id == evt.pointer_id() {
-                    sidebar_width.set((evt.client_coordinates().x - *drag_offset.read()) as u32);
+                    let target_pos = (evt.client_coordinates().x - *drag_offset.read()) as u32;
+                    sidebar_width.set(target_pos /*std::cmp::max(target_pos, sidebar_min_width)*/);
                 }
             },
             onpointerup: move |evt| {
@@ -104,25 +106,51 @@ pub fn SidebarLayout(
                 ActionbarButton {
                     text: "hi",
                     icon: &ld::LdPanelLeftClose,
-                    onclick: move |evt| rotate_layout(evt),
+                    onclick: move |_| {
+                        let new_layout = match *layout.read() {
+                            Layout::Split => Layout::OnlyMain,
+                            Layout::OnlyMain => Layout::Split,
+                            Layout::OnlySidebar => Layout::Split,
+                        };
+                        layout.set(new_layout);
+                    }
                 }
                 ActionbarButton {
                     text: "hi",
                     icon: &ld::LdPanelLeftDashed,
-                    onclick: move |evt| rotate_layout(evt),
+                    onclick: move |_| {
+                        let new_layout = match *layout.read() {
+                            Layout::Split => Layout::OnlySidebar,
+                            Layout::OnlyMain => Layout::Split,
+                            Layout::OnlySidebar => Layout::Split,
+                        };
+                        layout.set(new_layout);
+                    }
                 }
                 ActionbarButton {
                     text: "hi",
                     icon: &ld::LdPanelLeftOpen,
-                    onclick: move |evt| rotate_layout(evt),
+                    onclick: move |evt| layout.set(Layout::OnlySidebar),
+                }
+                ActionbarButton {
+                    text: "hi",
+                    icon: &ld::LdPanelRightOpen,
+                    onclick: move |evt| layout.set(Layout::OnlyMain),
+                }
+                ActionbarButton {
+                    text: "hi",
+                    icon: &ld::LdPanelLeft,
+                    onclick: move |evt| layout.set(Layout::Split),
                 }
             }
 
             div {
-                class: "sbview-sidebar sbview-scrollable-y",
-                nav {
+                class: "sbview-sidebar",
+                div {
                     class: "sbview-sidebar-inner",
-                    { sidebar }
+                    aside {
+                        { sidebar }
+                    }
                 }
             }
 
@@ -166,10 +194,12 @@ pub fn SidebarLayout(
             }
 
             div {
-                class: "sbview-main-container sbview-scrollable-y",
-                main {
+                class: "sbview-main",
+                div {
                     class: "sbview-main-inner",
-                    { main_view }
+                    main {
+                        { main_view }
+                    }
                 }
             }
         }

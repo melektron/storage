@@ -17,20 +17,22 @@ use dioxus_free_icons::IconShape;
 
 /// IconShape extension that allows comparison between
 /// unit structs implementing IconShape (all the icon
-/// definitions of dioxus_free_icons)
+/// definitions of dioxus_free_icons AFAIK)
 pub trait DynIconShape: IconShape + 'static {
     fn type_id(&self) -> TypeId {
         TypeId::of::<Self>()
     }
 }
-/// All unit structs (static) implementing IconShape should also have this.
+// All unit structs (static) implementing IconShape should also have this.
 impl<T> DynIconShape for T where T: IconShape + 'static {}
+// Compare IconShape trait objects based on their struct type
 impl PartialEq for &'static dyn DynIconShape {
     fn eq(&self, other: &Self) -> bool {
         self.type_id() == other.type_id()
     }
 }
 
+/// type alias for convenience
 pub type DynIconType = &'static dyn DynIconShape;
 
 /// Icon component Props
@@ -83,6 +85,7 @@ pub fn DynIcon(props: DynIconProps) -> Element {
 
 /*
 Questions:
+- Does TypeId comparison always
 - Obviously breaking change in usage, maybe provide in addition?
 - Performance? Probably slower and less optimizable than static Icon...
 - Any caveats that I haven't thought of?

@@ -350,6 +350,13 @@ table {
    on how Obsidian does things.
 */
 
+/* mod-is-resizing is used to temporarily
+disable any transitions on an element while it
+is being resized by the user */
+.mod-is-resizing {
+    transition: none !important;
+}
+
 /* mod-primary */
 
 button.mod-primary {

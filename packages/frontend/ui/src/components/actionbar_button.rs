@@ -11,7 +11,7 @@ use dioxus::prelude::*;
 
 pub use dioxus_free_icons::icons::ld_icons as ld;
 
-use crate::components::{dynamic_icon::DynIconType, sized_icon::{DynIconS, IconM, IconS, IconType}};
+use crate::components::{dynamic_icon::{DynIcon, DynIconType}, sized_icon::{DynIconS, IconM, IconS, IconType}};
 
 
 const ACTIONBAR_BUTTON_CSS: Asset = asset!("./actionbar_button.css");
@@ -29,12 +29,12 @@ pub fn ActionbarButton(
         button {
             class: "actionbar-button {class}",
             // passing on optional event handlers is unfortunately not possible yet
-            // https://discord.com/channels/899851952891002890/943190605067079712/1350519606921531402
+            // https://discord.com/channels/8998coincitentally51952891002890/943190605067079712/1350519606921531402
             // https://github.com/DioxusLabs/dioxus/issues/1005#issuecomment-1542310050
             onclick: move |evt| if let Some(onclick) = onclick { onclick.call(evt) },
             DynIconS {
                 icon: icon
-            }
+            } 
         }
     }
 }

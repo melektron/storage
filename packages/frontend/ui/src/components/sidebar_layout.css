@@ -5,9 +5,15 @@ www.elektron.work
 31.08.26, 15:04
 */
 
-.sbview-container {
+.sbview {
     height: 100%;
     width: 100%;
+    overflow: hidden;
+
+    --layout-transition: 250ms ease-out /*cubic-bezier(.4, 0, .2, 1)*/;
+
+    --divider-border-size: var(--padding-m);
+    --divider-width: calc(var(--divider-border-size) + 1px);
 
     display: grid;
     grid-template-areas: 
@@ -15,16 +21,15 @@ www.elektron.work
         "sidebar divider main";
     grid-template-columns: 
         var(--sidebar-width) 
-        calc(var(--divider-border-size) + 1px) 
-        1fr;
+        var(--divider-width)
+        minmax(0, 1fr);
     grid-template-rows: auto 1fr;
 
-    --divider-border-size: var(--padding-m);
+    transition: grid-template-columns var(--layout-transition);
 }
 
 .sbview-title-bar {
     grid-area: titlebar;
-    /*border: 5px solid green;*/
     border-bottom: 1px solid var(--border);
     
     display: flex;
@@ -35,7 +40,16 @@ www.elektron.work
 }
 .sbview-sidebar {
     grid-area: sidebar;
-    /*border: 5px solid pink;*/
+    overflow: hidden;
+
+    /* we want to right-align the inner container
+    so it overflows to the left side and looks like
+    it's being pushed away when animating */
+    display: flex;
+    justify-content: flex-end;
+
+    /* fade in/out when shown/hidden */
+    transition: opacity var(--layout-transition);
 }
 .sbview-divider {
     grid-area: divider;
@@ -50,26 +64,28 @@ www.elektron.work
 .sbview-divider:active {
     background: var(--border-hover);
 }
-.sbview-main-container {
+.sbview-main {
     grid-area: main;
-    /*border: 5px solid lightblue;*/
+    overflow: hidden;
+
+    transition: 
+        /* fade in/out when shown/hidden */
+        opacity var(--layout-transition), 
+        /* here we animate the padding that is added
+        when switching to main-only layout. This way 
+        the divider is smoothly being replaced by this padding
+        without any jumps */
+        padding var(--layout-transition);
 }
 
-/* applied to scrollable containers in sbview (sidebar and main) */
-.sbview-scrollable-y {
-    min-height: 0;
-    /* we only allow scrolling in y direction */
-    overflow-y: auto;
-    overflow-x: hidden;
-    /* when end of scroll area is reached, the scroll 
-    shouldn't continue scrolling the parent. 
-    TODO: decide if we actually need this bc it also 
-    prevents the default spring effect in firefox in some
-    situations. */
-    /*overscroll-behavior: contain;
-    -webkit-overflow-scrolling: touch;*/
-}
 .sbview-sidebar-inner {
+    /* the sidebar-min-width also comes from rust so 
+    it matches the limit enforced while resizing. 
+    When switching layouts and the sidebar-width is greater
+    than the min-width, we use that, so it looks like the full sidebar
+    is being pushed away. */
+    min-width: max(var(--sidebar-min-width), var(--sidebar-width));
+
     /* Child components may use this container's dimensions
     to adjust their layout */
     /*container-name: sbview-sidebar;
@@ -83,10 +99,15 @@ www.elektron.work
         max(var(--safe-left), var(--padding-m));
 }
 .sbview-main-inner {
+    /* this comes from rust so it's consistent with the programmatic limit */
+    min-width: var(--main-min-width);
+
     /* Child components may use this container's dimensions
     to adjust their layout */
     /*container-name: sbview-main-container;
     container-type: size;*/
+
+    transition: opacity var(--layout-transition);
 
     padding:
         calc(var(--safe-top) + var(--padding-m))
@@ -95,34 +116,62 @@ www.elektron.work
         0px; /* this is replaced by the divider dragging area */
 }
 
-/* In only main layout, we hide the sidebar and divider */
-.sbview-layout-only-main.sbview-container {
-    grid-template-areas: 
-        "titlebar"
-        "main";
+/* properties to make the containers scrollable */
+.sbview-sidebar-inner,
+.sbview-main-inner {
+    /* 100% height so this element doesn't overflow, 
+    instead forcing the content to overflow if
+    necessary */
+    height: 100%;
+    width: 100%;
+
+    min-height: 0;
+
+    /* we only allow scrolling in y direction */
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    /* when end of scroll area is reached, the scroll 
+    shouldn't continue scrolling the parent. 
+    TODO: decide if we actually need this bc it also 
+    prevents the default spring effect in firefox in some
+    situations. */
+    /*overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;*/
+}
+
+/* In only main layout, we minimize the sidebar and divider */
+.sbview[data-layout="only-main"] {
+    /* Here we must not change the structure (position of fractions), 
+    only the values of the concrete sizes (sidebar width and divider
+    width). Otherwise it doesn't properly animate. https://stackoverflow.com/a/43921717 */
     grid-template-columns:
-        1fr;
+        0px
+        0px
+        minmax(0, 1fr);
 }
-.sbview-layout-only-main > .sbview-sidebar,
-.sbview-layout-only-main > .sbview-divider {
-    display: none;
-}
-.sbview-layout-only-main > .sbview-main-container {
+.sbview[data-layout="only-main"] > .sbview-main {
     /* main now needs left padding because divider no longer exists */
     padding-left: var(--padding-m);
 }
+.sbview[data-layout="only-main"] > .sbview-sidebar {
+    opacity: 0;
+    pointer-events: none;
+}
 
 /* In only sidebar layout, we hide the main and divider */
-.sbview-layout-only-sidebar.sbview-container {
-    grid-template-areas: 
-        "titlebar"
-        "sidebar";
+.sbview[data-layout="only-sidebar"] {
+    /* Here we must not change the structure (position of fractions), 
+    only the values of the concrete sizes (sidebar width and divider
+    width). Otherwise it doesn't properly animate. https://stackoverflow.com/a/43921717 */
     grid-template-columns:
-        1fr;
+        100%
+        0px
+        minmax(0, 1fr);
 }
-.sbview-layout-only-sidebar > .sbview-main-container,
-.sbview-layout-only-sidebar > .sbview-divider {
-    display: none;
+.sbview[data-layout="only-sidebar"] > .sbview-main > .sbview-main-inner {
+    opacity: 0;
+    pointer-events: none;
 }
 
 
