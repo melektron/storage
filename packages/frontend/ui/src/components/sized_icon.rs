@@ -83,18 +83,17 @@ pub fn IconXL<T: IconType>(props: SizedIconProps<T>) -> Element {
     }
 }
 
+/// This icon has no set size and no size class.
+/// It is useful where size is changed dynamically 
+/// in CSS (e.g. Navbar).
 #[component]
-pub fn IconNavbar<T: IconType>(props: SizedIconProps<T>) -> Element {
+pub fn IconSizeless<T: IconType>(props: SizedIconProps<T>) -> Element {
     rsx! {
         Icon {
             icon: props.icon,
             width: None,
             height: None,
             fill: props.fill,
-            // navbar icons are styled differently depending on
-            // orientation and platform. They are selected by 
-            // being descendants of the navbar, so they don't need
-            // a class.
             class: "icon {props.class}",
             title: props.title,
             style: props.style
@@ -162,6 +161,24 @@ pub fn DynIconXL(props: DynSizedIconProps) -> Element {
             height: None,
             fill: props.fill,
             class: "icon icon-xl {props.class}",
+            title: props.title,
+            style: props.style
+        }
+    }
+}
+
+/// This icon has no set size and no size class.
+/// It is useful where size is changed dynamically 
+/// in CSS (e.g. Navbar).
+#[component]
+pub fn DynIconSizeless(props: DynSizedIconProps) -> Element {
+    rsx! {
+        DynIcon {
+            icon: props.icon,
+            width: None,
+            height: None,
+            fill: props.fill,
+            class: "icon {props.class}",
             title: props.title,
             style: props.style
         }

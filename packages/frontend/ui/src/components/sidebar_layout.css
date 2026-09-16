@@ -10,7 +10,7 @@ www.elektron.work
     width: 100%;
     overflow: hidden;
 
-    --layout-transition: 250ms ease-out /*cubic-bezier(.4, 0, .2, 1)*/;
+    --layout-transition: 2500ms ease-out /*cubic-bezier(.4, 0, .2, 1)*/;
 
     --divider-border-size: var(--padding-m);
     --divider-width: calc(var(--divider-border-size) + 1px);
@@ -54,12 +54,12 @@ www.elektron.work
 .sbview-divider {
     grid-area: divider;
     background-color: var(--border);
+    background-clip: content-box;
     cursor: ew-resize;
     /* divider border on right serves as enlarged hitbox.
     The hitbox doesn't extend to the left as this space may
     be inhabited by the scroll track of the sidebar */
-    border-right: var(--divider-border-size) solid var(--bg);
-    border-bottom: var(--safe-bottom-incl-navbar) solid var(--bg);
+    padding-right: var(--divider-border-size);
 }
 .sbview-divider:active {
     background: var(--border-hover);
@@ -68,14 +68,8 @@ www.elektron.work
     grid-area: main;
     overflow: hidden;
 
-    transition: 
-        /* fade in/out when shown/hidden */
-        opacity var(--layout-transition), 
-        /* here we animate the padding that is added
-        when switching to main-only layout. This way 
-        the divider is smoothly being replaced by this padding
-        without any jumps */
-        padding var(--layout-transition);
+    /* fade in/out when shown/hidden */
+    transition: opacity var(--layout-transition);
 }
 
 .sbview-sidebar-inner {
@@ -107,13 +101,17 @@ www.elektron.work
     /*container-name: sbview-main-container;
     container-type: size;*/
 
-    transition: opacity var(--layout-transition);
-
     padding:
         calc(var(--safe-top) + var(--padding-m))
         max(var(--safe-right), var(--padding-m))
         calc(var(--safe-bottom-incl-navbar) + var(--padding-m)) /* bottom always needs additional space to navbar */
         0px; /* this is replaced by the divider dragging area */
+
+    /* here we animate the left padding that is added
+    when switching to main-only layout. This way
+    the divider is smoothly being replaced by this padding
+    without any jumps */
+    transition: padding-left var(--layout-transition);
 }
 
 /* properties to make the containers scrollable */
@@ -150,7 +148,7 @@ www.elektron.work
         0px
         minmax(0, 1fr);
 }
-.sbview[data-layout="only-main"] > .sbview-main {
+.sbview[data-layout="only-main"] > .sbview-main > .sbview-main-inner {
     /* main now needs left padding because divider no longer exists */
     padding-left: var(--padding-m);
 }
@@ -169,14 +167,72 @@ www.elektron.work
         0px
         minmax(0, 1fr);
 }
-.sbview[data-layout="only-sidebar"] > .sbview-main > .sbview-main-inner {
+.sbview[data-layout="only-sidebar"] > .sbview-main {
     opacity: 0;
     pointer-events: none;
+
+    & > .sbview-main-inner {
+        /* main also needs the padding left while hidden, because
+        divider is still removed here and without it it would still look 
+        like the space between main and sidebar gets slightly smaller during
+        the hiding animation */
+        padding-left: var(--padding-m);
+    }
 }
 
 
 @media (orientation: portrait) and (max-width: 768px) {
-    /*
-    TODO: adjust layout for mobile (only show one of the panels at a time)
-    */
+
+    .sbview,
+    /* only sidebar is now the same as the default layout */
+    .sbview[data-layout="only-sidebar"] {
+        /* titlebar and divider removed from grid layout */
+        grid-template-areas: 
+            "sidebar main";
+        grid-template-columns: 
+            100%
+            minmax(0, 1fr);
+        grid-template-rows: minmax(0, 1fr);
+    }    
+    .sbview-title-bar {
+        grid-area: unset;
+        border-bottom: none;
+
+        padding: unset;
+        z-index: var(--layer-overlay);
+        position: fixed;
+        top: var(--titlebar-top-spacing);
+        left: max(var(--safe-left), var(--padding-m));
+        right: max(var(--safe-right), var(--padding-m));
+    }
+    .sbview-divider {
+        /* divider doesn't exist in portrait view */
+        display: none;
+        /* this may be needed in case we ever introduce divider 
+        in mobile portrait view, where the line should stop above the navbar */
+        padding-bottom: var(--safe-bottom-incl-navbar);
+    }
+
+    .sbview-sidebar-inner,
+    .sbview-main-inner {
+        /* on portrait, both sidebar and main get paddings that are
+        adjusted for them being fullscreen and accounting for the safe areas */
+        padding:
+            calc(var(--safe-top-incl-titlebar) + var(--padding-m))
+            calc(var(--safe-right) + var(--padding-m))
+            calc(var(--safe-bottom-incl-navbar) + var(--padding-m))
+            calc(var(--safe-left) + var(--padding-m));
+        
+        /* they also get the fade outs to make content seems
+        to scroll beneath navbar and titlebar */
+        mask-image: var(--fullscreen-unsafe-area-fadeout);
+    }
+
+    /* In only main layout, we minimize the sidebar */
+    .sbview[data-layout="only-main"] {
+        grid-template-columns:
+            0px
+            minmax(0, 1fr);
+    }
+    
 }

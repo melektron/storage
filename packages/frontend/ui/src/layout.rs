@@ -10,7 +10,7 @@ www.elektron.work
 
 use dioxus::prelude::*;
 use dioxus_free_icons::IconShape;
-use crate::components::sized_icon::{IconM, IconNavbar, ld};
+use crate::components::sized_icon::{IconM, IconSizeless, ld};
 
 use crate::{Route};
 
@@ -56,7 +56,7 @@ fn NavLink<T: IconShape + Clone + PartialEq + 'static>(
         Link { 
             to: to,
             class: class,
-            IconNavbar { icon: icon }
+            IconSizeless { icon: icon }
         }
     }
 }

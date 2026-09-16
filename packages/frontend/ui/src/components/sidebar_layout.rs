@@ -147,6 +147,11 @@ pub fn SidebarLayout(
             }
 
             div {
+                class: "sbview-title-bar-mobile",
+                
+            }
+
+            div {
                 class: "sbview-sidebar",
                 div {
                     class: "sbview-sidebar-inner",

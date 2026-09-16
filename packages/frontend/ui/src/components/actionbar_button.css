@@ -8,3 +8,31 @@ www.elektron.work
 button.actionbar-button {
     padding: var(--padding-m);
 }
+
+button.actionbar-button .icon {
+    width: var(--icon-s);
+    height: var(--icon-s);
+}
+
+:root {
+    /* this might not be 100% accurate because borders may be thinner than the
+    specified pixels, depending on the screen scaling ratio */
+    --actionbar-button-height: calc(var(--icon-s) + 2*var(--padding-m) + 2px); /* 2px for border */
+}
+
+@media (orientation: portrait) and (max-width: 768px) {
+    button.actionbar-button {
+        padding: var(--padding-m);
+        border-radius: calc(var(--icon-s) + 2*var(--padding-m));
+    }
+
+    button.actionbar-button .icon {
+        width: var(--icon-l);
+        height: var(--icon-l);
+    }
+
+    :root {
+        /* adjust height to account for new icon size. */
+        --actionbar-button-height: calc(var(--icon-l) + 2*var(--padding-m) + 2px); /* 2px for border */
+    }
+}
