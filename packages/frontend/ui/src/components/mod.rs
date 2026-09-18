@@ -19,4 +19,4 @@ pub mod camera;
 
 pub mod sidebar_layout;
 
-pub mod actionbar_button;
+pub mod actionbar;

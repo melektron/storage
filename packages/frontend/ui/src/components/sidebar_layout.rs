@@ -13,11 +13,12 @@ use anyhow::anyhow;
 use dioxus::prelude::*;
 use dioxus_free_icons::icons::ld_icons as ld;
 
-use crate::components::actionbar_button::ActionbarButton;
+use crate::components::actionbar::{ActionbarButton, ActionbarSelector, ActionbarSelectorOption};
 use crate::components::dynamic_icon::DynIconType;
 
 const SIDEBAR_LAYOUT_CSS: Asset = asset!("./sidebar_layout.css");
 
+#[derive(Copy, Clone, PartialEq)]
 pub enum Layout {
     Split,
     OnlyMain,
@@ -28,15 +29,17 @@ pub enum Layout {
 #[component]
 pub fn SidebarLayout(
     #[props(into)]
-    title: String,
+    titlebar: Element,
     sidebar: Element,
     main_view: Element,
+    #[props(default = Layout::Split)]
+    initial_layout: Layout,
 ) -> Element {
     let mut dragging_pointer = use_signal(|| None::<i32>);
     let mut drag_offset = use_signal(|| 0 as f64);
     
     // TODO: Somehow persist these across sessions or at least navigations (local storage)
-    let mut layout = use_signal(|| Layout::Split);
+    let mut layout = use_signal(|| initial_layout);
     let sidebar_min_width = 200u32;
     let main_min_width = 200u32;
     let mut sidebar_width = use_signal(|| 200 as u32); // sidebar is 200px by default
@@ -45,22 +48,6 @@ pub fn SidebarLayout(
         Layout::Split => "split",
         Layout::OnlyMain => "only-main",
         Layout::OnlySidebar => "only-sidebar",
-    };
-
-    let layout_button_icon: DynIconType = match *layout.read() {
-        Layout::Split => &ld::LdPanelLeftClose,
-        Layout::OnlyMain => &ld::LdPanelRightClose,
-        Layout::OnlySidebar => &ld::LdPanelLeft,
-    };
-
-    let mut rotate_layout = move |_| {
-        tracing::warn!("called rotate");
-        let new_layout = match *layout.read() {
-            Layout::Split => Layout::OnlyMain,
-            Layout::OnlyMain => Layout::OnlySidebar,
-            Layout::OnlySidebar => Layout::Split,
-        };
-        layout.set(new_layout);
     };
 
     let handle_resize_move = move |evt: Event<PointerData>| {
@@ -78,6 +65,8 @@ pub fn SidebarLayout(
         if let Some(id) = *pointer_id && id != evt.pointer_id() { return }
         *pointer_id = None;
     };
+
+    
 
     rsx! {
         document::Link { rel: "stylesheet", href: SIDEBAR_LAYOUT_CSS }
@@ -97,59 +86,51 @@ pub fn SidebarLayout(
             // Does have the disadvantage of firing many unnecessary events while not resizing.
             onpointermove: handle_resize_move,
             onpointerup: handle_resize_stop,
+            // TODO: somehow only add these in non-web platforms, maybe with spreading,
+            // but doing this crashes as soon as an event occurs... so maybe in the future another way
+            // let resize_event_handlers = vec![
+            //    Attribute::new("onpointermove", AttributeValue::listener(handle_resize_move), None, false),
+            //    Attribute::new("onpointerup", AttributeValue::listener(handle_resize_stop), None, false)
+            //];
+            //..resize_event_handlers,
 
             div {
                 class: "sbview-title-bar",
-                ActionbarButton {
-                    text: "hi",
-                    icon: layout_button_icon,
-                    onclick: move |evt| rotate_layout(evt),
+
+                // desktop layout selector
+                ActionbarSelector {
+                    class: "sbview-desktop-only",
+                    title: "something",
+                    options: [
+                        ActionbarSelectorOption::new(Layout::OnlySidebar, &ld::LdPanelRightClose, "Only sidebar", ""),
+                        ActionbarSelectorOption::new(Layout::Split, &ld::LdPanelLeft, "Split", ""),
+                        ActionbarSelectorOption::new(Layout::OnlyMain, &ld::LdPanelLeftClose, "Only main view", ""),
+                    ],
+                    initial: initial_layout,
+                    onchange: move |l| layout.set(l)
                 }
+
+                // mobile back button
                 ActionbarButton {
-                    text: "hi",
-                    icon: &ld::LdPanelLeftClose,
-                    onclick: move |_| {
-                        let new_layout = match *layout.read() {
-                            Layout::Split => Layout::OnlyMain,
-                            Layout::OnlyMain => Layout::Split,
-                            Layout::OnlySidebar => Layout::Split,
-                        };
-                        layout.set(new_layout);
-                    }
-                }
-                ActionbarButton {
-                    text: "hi",
-                    icon: &ld::LdPanelLeftDashed,
-                    onclick: move |_| {
-                        let new_layout = match *layout.read() {
-                            Layout::Split => Layout::OnlySidebar,
-                            Layout::OnlyMain => Layout::Split,
-                            Layout::OnlySidebar => Layout::Split,
-                        };
-                        layout.set(new_layout);
-                    }
-                }
-                ActionbarButton {
-                    text: "hi",
-                    icon: &ld::LdPanelLeftOpen,
+                    class: "sbview-mobile-only sbview-mobile-back-button",
+                    tooltip: "hi",
+                    icon: &ld::LdChevronLeft,
                     onclick: move |_| layout.set(Layout::OnlySidebar),
                 }
+
+                // view-specific titlebar items
+                { titlebar },
+
+                // debug mobile enter main button
+                // TODO: remove once tested
                 ActionbarButton {
-                    text: "hi",
-                    icon: &ld::LdPanelRightOpen,
+                    class: "sbview-mobile-only mod-flex-end",
+                    tooltip: "hi",
+                    icon: &ld::LdArrowRight,
                     onclick: move |_| layout.set(Layout::OnlyMain),
-                }
-                ActionbarButton {
-                    text: "hi",
-                    icon: &ld::LdPanelLeft,
-                    onclick: move |_| layout.set(Layout::Split),
                 }
             }
 
-            div {
-                class: "sbview-title-bar-mobile",
-                
-            }
 
             div {
                 class: "sbview-sidebar",

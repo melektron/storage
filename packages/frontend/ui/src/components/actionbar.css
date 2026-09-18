@@ -14,6 +14,35 @@ button.actionbar-button .icon {
     height: var(--icon-s);
 }
 
+.actionbar-selector {
+    display: flex;
+    padding: var(--size-fine-1);
+    
+    background: var(--surface-3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-m);
+}
+
+.actionbar-selector-button {
+    box-sizing: border-box;
+    padding: calc(var(--padding-m) - var(--size-fine-1));
+    border-color: transparent;
+    border-radius: calc(var(--radius-m) - var(--size-fine-1) - 1px);
+}
+.actionbar-selector-button:hover {
+    border-color: transparent;
+}
+.actionbar-selector-button .icon {
+    width: var(--icon-s);
+    height: var(--icon-s);
+}
+.actionbar-selector-button-selected,
+.actionbar-selector-button-selected:hover {
+    background: var(--surface-active);
+    border: 1px solid var(--border);
+    border-color: var(--border-hover);
+}
+
 :root {
     /* this might not be 100% accurate because borders may be thinner than the
     specified pixels, depending on the screen scaling ratio */

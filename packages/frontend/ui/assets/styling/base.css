@@ -357,6 +357,11 @@ is being resized by the user */
     transition: none !important;
 }
 
+/* move item to end of flex container */
+.mod-flex-end {
+    margin-left: auto;
+}
+
 /* mod-primary */
 
 button.mod-primary {

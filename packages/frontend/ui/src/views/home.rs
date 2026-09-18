@@ -26,7 +26,7 @@ pub fn Home() -> Element {
         // TODO: nextup try to get recolorable logo working and then properly include fonts and get main CSS working
         //div { dangerous_inner_html: crate::assets::LOGO_COLORLESS_SVG }
         SidebarLayout {
-            title: "Home",
+            titlebar: rsx! { "Home" },
             sidebar: rsx! {
                 "Home Sidebar"
                 for _ in 0..8 {

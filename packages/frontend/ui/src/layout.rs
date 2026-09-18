@@ -29,6 +29,7 @@ fn NavLink<T: IconShape + Clone + PartialEq + 'static>(
     #[props(default = Active::Auto)]
     active: Active,
     icon: T,
+    tooltip: String,
     class: Option<String>,
     children: Element
 ) -> Element {
@@ -56,6 +57,7 @@ fn NavLink<T: IconShape + Clone + PartialEq + 'static>(
         Link { 
             to: to,
             class: class,
+            title: tooltip,
             IconSizeless { icon: icon }
         }
     }
@@ -69,11 +71,11 @@ pub fn MainLayout() -> Element {
             id: "navbar",
             nav {
                 id: "navbar-inner",
-                NavLink { to: Route::Home {}, icon: ld::LdHome }
-                NavLink { to: Route::Parts { id: 1 }, active: Active::StartsWith("/part"), icon: ld::LdComponent }
-                NavLink { to: Route::Stock {}, active: Active::StartsWith("/stock"), icon: ld::LdBoxes }
-                NavLink { to: Route::Settings {}, icon: ld::LdSettings, class: "nav-end" }
-                NavLink { to: Route::User {}, icon: ld::LdCircleUserRound }
+                NavLink { to: Route::Home {}, icon: ld::LdHome, tooltip: "Home" }
+                NavLink { to: Route::Parts { id: 1 }, active: Active::StartsWith("/part"), icon: ld::LdComponent, tooltip: "Parts" }
+                NavLink { to: Route::Stock {}, active: Active::StartsWith("/stock"), icon: ld::LdBoxes, tooltip: "Stock" }
+                NavLink { to: Route::Settings {}, icon: ld::LdSettings, class: "nav-end", tooltip: "Settings" }
+                NavLink { to: Route::User {}, icon: ld::LdCircleUserRound, tooltip: "User" }    // TODO: change tooltip to the current username
                 // TODO: Make main menu accessible via command pallet
             }
         }

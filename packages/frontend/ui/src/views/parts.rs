@@ -28,6 +28,10 @@ pub fn Parts(id: i32) -> Element {
             span { " <---> " }
             Link { to: Route::Parts { id: id + 1 }, "Next" }
 
+            br {} input {
+                type: "text"
+            }
+
             p {
                 "Haptic trigger:",
                 div {

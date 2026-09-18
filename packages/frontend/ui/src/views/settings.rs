@@ -12,7 +12,7 @@ use crate::components::sidebar_layout::SidebarLayout;
 pub fn Settings() -> Element {
     rsx! {
         SidebarLayout { 
-            title: "Settings",
+            titlebar: rsx! { "Settings" },
             sidebar: rsx! {
                 div {
                     width: "100%",

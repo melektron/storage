@@ -10,7 +10,7 @@ www.elektron.work
     width: 100%;
     overflow: hidden;
 
-    --layout-transition: 2500ms ease-out /*cubic-bezier(.4, 0, .2, 1)*/;
+    --layout-transition: 250ms ease-out /*cubic-bezier(.4, 0, .2, 1)*/;
 
     --divider-border-size: var(--padding-m);
     --divider-width: calc(var(--divider-border-size) + 1px);
@@ -180,6 +180,14 @@ www.elektron.work
     }
 }
 
+@media (prefers-reduced-motion: reduce) {
+    .sbview,
+    .sbview-sidebar,
+    .sbview-main,
+    .sbview-main-inner {
+        transition: none;
+    }
+}
 
 @media (orientation: portrait) and (max-width: 768px) {
 
@@ -193,7 +201,28 @@ www.elektron.work
             100%
             minmax(0, 1fr);
         grid-template-rows: minmax(0, 1fr);
-    }    
+        
+        .sbview-mobile-back-button {
+            display: none;
+        }
+    }  
+    .sbview[data-layout="only-main"] {
+        /* In only main layout, we minimize the sidebar */
+        grid-template-columns:
+            0px
+            minmax(0, 1fr);
+        
+        .sbview-mobile-back-button {
+            display: block;
+            /* the chevron icon has to be transformed a bit
+            to look natural... for some reason they make it unnatural in the
+            icon libraries */
+            svg {
+                transform: scale(1.3) translateX(-1px);
+            }
+        }
+    }
+    
     .sbview-title-bar {
         grid-area: unset;
         border-bottom: none;
@@ -215,6 +244,13 @@ www.elektron.work
 
     .sbview-sidebar-inner,
     .sbview-main-inner {
+        /* on portrait both sidebar and main are always fullscreen,
+        extending to the entire viewport. For this reason, we set the
+        min-width to the viewport width, so during layout
+        switch the layouts don't change size.
+        TODO: check if this causes any problems in the future */
+        min-width: 100vw;
+
         /* on portrait, both sidebar and main get paddings that are
         adjusted for them being fullscreen and accounting for the safe areas */
         padding:
@@ -228,11 +264,18 @@ www.elektron.work
         mask-image: var(--fullscreen-unsafe-area-fadeout);
     }
 
-    /* In only main layout, we minimize the sidebar */
-    .sbview[data-layout="only-main"] {
-        grid-template-columns:
-            0px
-            minmax(0, 1fr);
+    /* hide desktop-only items in mobile */
+    .sbview-desktop-only {
+        display: none !important;
     }
-    
+}
+
+/* exact inverse of the above query to hide mobile-only items
+only when in desktop mode. This way we don't need to explicitly
+specify display: to show them and can accommodate for different
+display values of different elements */
+@media (orientation: landscape), (min-width: 769px) {
+    .sbview-mobile-only {
+        display: none !important;
+    }
 }
